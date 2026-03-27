@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+venv/
+env/
+
+# Banco de dados
+data/
+pgdata/
+*.bak
+
+# SO / Editores
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Pastas de Agentes IA
+.gemini/
+.agents/
+.cline/
+.cursor/

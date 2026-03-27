@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Contas — Orçamento Mensal</title>
+  <meta name="description" content="Controle mensal de contas e orçamento pessoal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <div class="app-wrapper">
+
+    <!-- ── Header ─────────────────────────────────────────────────── -->
+    <header class="app-header">
+      <div class="header-left">
+        <span class="logo-icon">💰</span>
+        <div>
+          <h1 class="app-title">Orçamento Mensal</h1>
+          <p class="app-subtitle">Controle de contas</p>
+        </div>
+      </div>
+
+      <nav class="month-nav" aria-label="Navegação por mês">
+        <button id="btn-prev" class="nav-btn" title="Mês anterior">&#8249;</button>
+        <button id="month-label" class="month-label month-label-btn" title="Selecionar mês">Carregando…</button>
+        <button id="btn-next" class="nav-btn" title="Próximo mês">&#8250;</button>
+      </nav>
+
+      <div class="header-actions">
+        <a href="recorrentes.html" class="btn-secondary" id="btn-recorrentes">🔁 Recorrentes</a>
+        <button id="btn-batch" class="btn-tertiary" title="Criar em lote">❖ Criar vários</button>
+        <button id="btn-add" class="btn-primary" title="Novo registro">+ Novo registro</button>
+      </div>
+    </header>
+
+    <!-- ── Summary Cards ──────────────────────────────────────────── -->
+    <section class="summary-cards" aria-label="Resumo do mês">
+      <div class="card card-balance">
+        <span class="card-label">Saldo Atual</span>
+        <span id="sum-balance" class="card-value">—</span>
+      </div>
+      <div class="card card-income">
+        <span class="card-label">Entradas (efetivo)</span>
+        <span id="sum-income" class="card-value">—</span>
+      </div>
+      <div class="card card-expense">
+        <span class="card-label">Saídas (efetivo)</span>
+        <span id="sum-expense" class="card-value">—</span>
+      </div>
+      <div class="card card-pending">
+        <span class="card-label">A pagar (prev.)</span>
+        <span id="sum-pending" class="card-value">—</span>
+      </div>
+    </section>
+
+    <!-- ── Table ──────────────────────────────────────────────────── -->
+    <section class="table-section">
+      <div class="table-toolbar" style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+        <div style="font-size:0.85rem;display:flex;align-items:center;gap:8px;">
+          <span style="font-weight:500;color:var(--text-secondary);">Cronológica</span>
+          <label class="toggle-switch" title="Alternar Ordenação">
+            <input type="checkbox" id="sort-toggle" />
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-weight:500;color:var(--text-secondary);">Receitas 1º</span>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table id="tx-table" aria-label="Transações do mês">
+          <thead>
+            <tr>
+              <th class="col-mov">SALDO</th>
+              <th class="col-previsto">PREVISTO</th>
+              <th class="col-efetivo">EFETIVO</th>
+              <th class="col-venc">VENCIMENTO</th>
+              <th class="col-desc">DISCRIMINAÇÃO</th>
+              <th class="col-data">PAGAMENTO / AGEND.</th>
+              <th class="col-status">STATUS</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="tx-body">
+            <tr class="loading-row">
+              <td colspan="8">
+                <div class="spinner"></div>
+                <span>Carregando…</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ── Add/Edit Modal ────────────────────────────────────────── -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Nova Conta</h2>
+        <button id="btn-move-month" class="btn-move-month hidden" title="Mover este registro para o próximo mês">📅 Próximo mês →</button>
+        <button id="modal-close" class="modal-close" aria-label="Fechar">&times;</button>
+      </div>
+      <form id="tx-form" class="modal-form" autocomplete="off">
+        <input type="hidden" id="form-id" />
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="form-discriminacao">Discriminação *</label>
+            <input type="text" id="form-discriminacao" required placeholder="Ex: Energia elétrica" />
+          </div>
+          <div class="form-group">
+            <label for="form-tipo">Tipo *</label>
+            <select id="form-tipo">
+              <option value="saida">Saída (despesa)</option>
+              <option value="entrada">Entrada (receita)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="form-previsto">Previsto (R$)</label>
+            <input type="number" id="form-previsto" step="0.01" min="0" placeholder="0,00" />
+          </div>
+          <div class="form-group">
+            <label for="form-efetivo">Efetivo (R$)</label>
+            <input type="number" id="form-efetivo" step="0.01" min="0" placeholder="0,00" />
+          </div>
+          <div class="form-group">
+            <label for="form-vencimento">Vencimento</label>
+            <input type="date" id="form-vencimento" />
+          </div>
+          <div class="form-group">
+            <label for="form-data-pagamento">Data Pagamento</label>
+            <input type="date" id="form-data-pagamento" />
+          </div>
+          <div class="form-group">
+            <label for="form-status">Status</label>
+            <select id="form-status">
+              <option value="PEN">PEN</option>
+              <option value="OK">OK</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel" class="btn-ghost">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Batch Create Modal ──────────────────────────────────────── -->
+  <div id="batch-modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="batch-modal-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="batch-modal-title">Criar Vários Registros (<span id="batch-month-title"></span>)</h2>
+        <button id="batch-modal-close" class="modal-close" aria-label="Fechar">&times;</button>
+      </div>
+      <form id="batch-form" class="modal-form" autocomplete="off">
+        <p style="margin-top:0;margin-bottom:12px;font-size:0.85rem;color:var(--text-secondary)">
+          Selecione os dias do mês em que deseja criar os registros:
+        </p>
+        <div id="batch-calendar" class="batch-calendar"></div>
+
+        <div class="form-grid" style="margin-top:16px;">
+          <div class="form-group form-group--full">
+            <label for="batch-discriminacao">Discriminação *</label>
+            <input type="text" id="batch-discriminacao" required placeholder="Ex: Diarista" />
+          </div>
+          <div class="form-group">
+            <label for="batch-tipo">Tipo *</label>
+            <select id="batch-tipo">
+              <option value="saida">Saída (despesa)</option>
+              <option value="entrada">Entrada (receita)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="batch-previsto">Valor Previsto (R$)</label>
+            <input type="number" id="batch-previsto" step="0.01" min="0" required placeholder="0,00" />
+          </div>
+        </div>
+
+        <div class="modal-footer" style="padding:20px 0 0;">
+          <button type="button" id="btn-batch-cancel" class="btn-ghost">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-batch-save">Criar Registros (0)</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Delete Confirm Modal ──────────────────────────────────── -->
+  <div id="del-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal modal--sm">
+      <div class="modal-header">
+        <h2>Confirmar exclusão</h2>
+        <button id="del-close" class="modal-close">&times;</button>
+      </div>
+      <p class="del-msg">Tem certeza que deseja excluir esta conta?</p>
+      <div class="modal-footer">
+        <button id="del-cancel" class="btn-ghost">Cancelar</button>
+        <button id="del-confirm" class="btn-danger">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Payment date popover ──────────────────────────────────── -->
+  <div id="pay-popover" class="pay-popover hidden" role="dialog" aria-label="Registrar pagamento">
+    <p class="pay-popover-title">Pagamento / Agendamento</p>
+    <input type="date" id="pay-date-input" />
+    <div class="pay-popover-actions">
+      <button id="pay-cancel-btn"  class="btn-ghost btn-sm">Cancelar</button>
+      <button id="pay-clear-btn"   class="btn-ghost btn-sm">Limpar</button>
+      <button id="pay-confirm-btn" class="btn-primary btn-sm">OK</button>
+    </div>
+  </div>
+
+  <!-- ── Month picker popover ─────────────────────────────────── -->
+  <div id="month-picker" class="pay-popover hidden" role="dialog" aria-label="Selecionar mês">
+    <p class="pay-popover-title">Ir para</p>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <select id="picker-year" style="flex:1;"></select>
+      <select id="picker-month" style="flex:1.2;">
+        <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+        <option value="3">Março</option><option value="4">Abril</option>
+        <option value="5">Maio</option><option value="6">Junho</option>
+        <option value="7">Julho</option><option value="8">Agosto</option>
+        <option value="9">Setembro</option><option value="10">Outubro</option>
+        <option value="11">Novembro</option><option value="12">Dezembro</option>
+      </select>
+    </div>
+    <div class="pay-popover-actions">
+      <button id="picker-cancel" class="btn-ghost btn-sm">Cancelar</button>
+      <button id="picker-go"    class="btn-primary btn-sm">Ir</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
