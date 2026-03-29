@@ -21,6 +21,7 @@
           <h1 class="app-title">Orçamento Mensal</h1>
           <p class="app-subtitle">Controle de contas</p>
         </div>
+        <a href="configuracoes.html" class="btn-settings" title="Configurações" id="btn-settings">⚙️</a>
       </div>
 
       <nav class="month-nav" aria-label="Navegação por mês">
@@ -30,6 +31,8 @@
       </nav>
 
       <div class="header-actions">
+        <span id="auth-user-display" class="auth-user-display"></span>
+        <button id="btn-logout" class="btn-logout" title="Sair">⏻</button>
         <a href="recorrentes.html" class="btn-secondary" id="btn-recorrentes">🔁 Recorrentes</a>
         <button id="btn-batch" class="btn-tertiary" title="Criar em lote">❖ Criar vários</button>
         <button id="btn-add" class="btn-primary" title="Novo registro">+ Novo registro</button>
@@ -238,6 +241,54 @@
     </div>
   </div>
 
+
+  <!-- ── Modal Login ─────────────────────────────────────────── -->
+  <div id="login-modal" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-logo">💰</div>
+      <h2 class="auth-title">App Contas</h2>
+      <p class="auth-subtitle">Faça login para continuar</p>
+      <form id="login-form" autocomplete="on">
+        <div class="auth-field">
+          <label for="login-username">Usuário</label>
+          <input id="login-username" type="text" autocomplete="username" placeholder="Seu usuário" required />
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Senha</label>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="Sua senha" required />
+        </div>
+        <p id="login-error" class="auth-error hidden"></p>
+        <button id="login-submit" type="submit" class="btn-primary auth-btn">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal Primeiro Acesso ──────────────────────────────── -->
+  <div id="first-access-modal" class="auth-overlay hidden">
+    <div class="auth-card">
+      <div class="auth-logo">🔐</div>
+      <h2 class="auth-title">Primeiro Acesso</h2>
+      <p class="auth-subtitle">Por segurança, defina seu usuário e senha antes de continuar.</p>
+      <form id="first-access-form" autocomplete="off">
+        <div class="auth-field">
+          <label for="fa-username">Novo usuário</label>
+          <input id="fa-username" type="text" autocomplete="off" placeholder="Escolha um nome de usuário" required />
+        </div>
+        <div class="auth-field">
+          <label for="fa-password">Nova senha</label>
+          <input id="fa-password" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" required />
+        </div>
+        <div class="auth-field">
+          <label for="fa-password-confirm">Confirmar senha</label>
+          <input id="fa-password-confirm" type="password" autocomplete="new-password" placeholder="Repita a senha" required />
+        </div>
+        <p id="fa-error" class="auth-error hidden"></p>
+        <button id="fa-submit" type="submit" class="btn-primary auth-btn">Salvar e entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

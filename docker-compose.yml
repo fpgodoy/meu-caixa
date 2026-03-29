@@ -1,16 +1,23 @@
 services:
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     restart: unless-stopped
+    command: >
+      postgres
+        -c shared_buffers=32MB
+        -c effective_cache_size=64MB
+        -c work_mem=4MB
+        -c maintenance_work_mem=16MB
+        -c max_connections=10
     environment:
-      POSTGRES_DB: appcontas
-      POSTGRES_USER: contas
-      POSTGRES_PASSWORD: contas123
+      POSTGRES_DB: ${POSTGRES_DB:?Defina POSTGRES_DB no .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./data:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U contas -d appcontas"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-contas} -d ${POSTGRES_DB:-appcontas}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -19,9 +26,14 @@ services:
     build: ./backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://contas:contas123@db:5432/appcontas
-    ports:
-      - "8001:8000"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no .env}
+      JWT_EXPIRE_HOURS: ${JWT_EXPIRE_HOURS:-24}
+      BACKUP_HOUR: ${BACKUP_HOUR:-2}
+    volumes:
+      - ./backups:/backups
+    expose:
+      - "8000"
     depends_on:
       db:
         condition: service_healthy
@@ -33,6 +45,3 @@ services:
       - "3000:80"
     depends_on:
       - backend
-
-volumes:
-  pgdata:

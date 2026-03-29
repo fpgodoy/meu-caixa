@@ -74,5 +74,6 @@ class RecurringUpdate(BaseModel):
 class RecurringOut(RecurringBase):
     id: int
     criado_em: Optional[date] = None
+    ultimo_mes_gerado: Optional[str] = None   # max ano_mes nas transações vinculadas
 
     model_config = {"from_attributes": True}

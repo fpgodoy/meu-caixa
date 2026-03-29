@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurações — App Contas</title>
+  <meta name="description" content="Configurações do App Contas: backup e gerenciamento de usuários." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Configurações page extras ─────────────────────────────── */
+    .config-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* Sidebar nav */
+    .config-nav {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px;
+      position: sticky;
+      top: 24px;
+    }
+    .config-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: background .15s, color .15s;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+    .config-nav-item:hover { background: var(--bg-row-hover); color: var(--text-primary); }
+    .config-nav-item.active { background: var(--accent); color: #fff; }
+    .config-nav-item .nav-icon { font-size: 1rem; }
+
+    /* Content panels */
+    .config-content { display: flex; flex-direction: column; gap: 20px; }
+
+    .config-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .config-panel-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .config-panel-header h2 {
+      font-size: .95rem;
+      font-weight: 600;
+    }
+    .config-panel-header .panel-icon { font-size: 1.2rem; }
+    .config-panel-body { padding: 24px; }
+
+    /* Backup card */
+    .backup-action {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--bg-row);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+    }
+    .backup-action-info h3 { font-size: .9rem; font-weight: 600; margin-bottom: 4px; }
+    .backup-action-info p  { font-size: .8rem; color: var(--text-secondary); }
+
+    #btn-backup {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      min-width: 160px;
+      justify-content: center;
+    }
+    #btn-backup .btn-spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      display: none;
+    }
+    #btn-backup.loading .btn-spinner { display: inline-block; }
+    #btn-backup.loading .btn-label   { display: none; }
+
+    /* Feedback toast */
+    #backup-toast {
+      display: none;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: .85rem;
+      font-weight: 500;
+      margin-bottom: 16px;
+      align-items: center;
+      gap: 10px;
+    }
+    #backup-toast.show { display: flex; }
+    #backup-toast.success { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+    #backup-toast.error   { background: var(--red-dim);   color: var(--red);   border: 1px solid var(--red); }
+
+    /* Backup list */
+    .backup-list-title {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .backup-list { display: flex; flex-direction: column; gap: 6px; }
+    .backup-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--bg-row);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: .83rem;
+    }
+    .backup-item-name { font-family: monospace; color: var(--text-primary); font-weight: 500; }
+    .backup-item-meta { color: var(--text-secondary); display: flex; gap: 16px; font-size: .78rem; margin-top: 3px; }
+    .backup-empty {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+      font-size: .85rem;
+    }
+
+    /* Restore button */
+    .btn-restore {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--amber, #f59e0b);
+      background: transparent;
+      color: var(--amber, #f59e0b);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-restore:hover:not(:disabled) {
+      background: rgba(245,158,11,.12);
+    }
+    .btn-restore:disabled { opacity: .5; cursor: not-allowed; }
+    .restore-spinner {
+      display: none;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(245,158,11,.3);
+      border-top-color: var(--amber, #f59e0b);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    .btn-restore.loading .restore-spinner { display: inline-block; }
+    .btn-restore.loading .restore-label   { display: none; }
+
+    /* Users placeholder */
+    .users-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      gap: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+    .users-placeholder .ph-icon { font-size: 2.5rem; opacity: .4; }
+    .users-placeholder h3 { font-size: .95rem; font-weight: 600; color: var(--text-primary); }
+    .users-placeholder p  { font-size: .83rem; max-width: 320px; }
+    .badge-soon {
+      display: inline-block;
+      padding: 3px 10px;
+      background: var(--amber-dim);
+      color: var(--amber);
+      border: 1px solid var(--amber);
+      border-radius: 20px;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+    }
+
+    @media (max-width: 700px) {
+      .config-layout { grid-template-columns: 1fr; }
+      .config-nav { position: static; display: flex; gap: 4px; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+
+    <!-- ── Header ────────────────────────────────────────────────── -->
+    <header class="app-header">
+      <div class="header-left">
+        <span class="logo-icon">💰</span>
+        <div>
+          <h1 class="app-title">Configurações</h1>
+          <p class="app-subtitle">App Contas</p>
+        </div>
+        <a href="index.html" id="btn-settings" class="btn-settings" title="Voltar ao app" style="margin-left:6px;font-size:1.1rem;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);text-decoration:none;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text-primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">←</a>
+      </div>
+    </header>
+
+    <!-- ── Body ──────────────────────────────────────────────────── -->
+    <div class="config-layout">
+
+      <!-- Sidebar -->
+      <nav class="config-nav" aria-label="Seções de configuração">
+        <button class="config-nav-item active" data-section="backup" id="nav-backup">
+          <span class="nav-icon">💾</span> Backup
+        </button>
+        <button class="config-nav-item" data-section="usuarios" id="nav-usuarios">
+          <span class="nav-icon">👥</span> Usuários
+        </button>
+      </nav>
+
+      <!-- Panels -->
+      <div class="config-content">
+
+        <!-- Backup Panel -->
+        <section class="config-panel" id="section-backup">
+          <div class="config-panel-header">
+            <span class="panel-icon">💾</span>
+            <h2>Backup do Banco de Dados</h2>
+          </div>
+          <div class="config-panel-body">
+
+            <div class="backup-action">
+              <div class="backup-action-info">
+                <h3>Criar backup agora</h3>
+                <p>Gera um dump <code>.sql.gz</code> do banco e salva em <code>./backups/</code></p>
+              </div>
+              <button class="btn-primary" id="btn-backup">
+                <span class="btn-spinner"></span>
+                <span class="btn-label">💾 Criar Backup</span>
+              </button>
+            </div>
+
+            <div id="backup-toast" role="status"></div>
+
+            <p class="backup-list-title">Backups disponíveis</p>
+            <div class="backup-list" id="backup-list">
+              <div class="backup-empty">Carregando…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Usuários Panel -->
+        <section class="config-panel hidden" id="section-usuarios">
+          <div class="config-panel-header" style="justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="panel-icon">👥</span>
+              <h2>Gerenciamento de Usuários</h2>
+            </div>
+            <button class="btn-primary" id="btn-new-user" style="font-size:.82rem;padding:7px 14px">
+              + Novo Usuário
+            </button>
+          </div>
+          <div class="config-panel-body">
+            <div id="users-list"><div class="backup-empty">Carregando…</div></div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── Modal Novo/Editar Usuário ──────────────────────────── -->
+  <div id="user-modal-overlay" class="modal-overlay hidden">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <h2 class="modal-title" id="user-modal-title">Novo Usuário</h2>
+        <button class="modal-close" id="user-modal-close">&times;</button>
+      </div>
+      <form id="user-form" style="padding:20px 24px;display:flex;flex-direction:column;gap:14px">
+        <input type="hidden" id="user-form-id" />
+        <div class="form-group">
+          <label for="user-form-username">Usuário</label>
+          <input id="user-form-username" type="text" placeholder="Nome de usuário" required />
+        </div>
+        <div class="form-group">
+          <label for="user-form-display">Nome de exibição</label>
+          <input id="user-form-display" type="text" placeholder="Nome completo (opcional)" />
+        </div>
+        <div class="form-group">
+          <label for="user-form-password">Senha</label>
+          <input id="user-form-password" type="password" placeholder="Mínimo 6 caracteres" />
+        </div>
+        <p id="user-form-error" class="auth-error hidden"></p>
+      </form>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="user-form-cancel">Cancelar</button>
+        <button class="btn-primary" id="user-form-submit">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal Login ───────────────────────────────────────── -->
+  <div id="login-modal" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-logo">💰</div>
+      <h2 class="auth-title">App Contas</h2>
+      <p class="auth-subtitle">Faça login para continuar</p>
+      <form id="login-form" autocomplete="on">
+        <div class="auth-field">
+          <label for="login-username">Usuário</label>
+          <input id="login-username" type="text" autocomplete="username" placeholder="Seu usuário" required />
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Senha</label>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="Sua senha" required />
+        </div>
+        <p id="login-error" class="auth-error hidden"></p>
+        <button id="login-submit" type="submit" class="btn-primary auth-btn">Entrar</button>
+      </form>
+    </div>
+  </div>
+  <div id="first-access-modal" class="auth-overlay hidden">
+    <div class="auth-card">
+      <div class="auth-logo">🔐</div>
+      <h2 class="auth-title">Primeiro Acesso</h2>
+      <p class="auth-subtitle">Por segurança, defina seu usuário e senha antes de continuar.</p>
+      <form id="first-access-form" autocomplete="off">
+        <div class="auth-field"><label for="fa-username">Novo usuário</label><input id="fa-username" type="text" autocomplete="off" required /></div>
+        <div class="auth-field"><label for="fa-password">Nova senha</label><input id="fa-password" type="password" autocomplete="new-password" required /></div>
+        <div class="auth-field"><label for="fa-password-confirm">Confirmar senha</label><input id="fa-password-confirm" type="password" autocomplete="new-password" required /></div>
+        <p id="fa-error" class="auth-error hidden"></p>
+        <button id="fa-submit" type="submit" class="btn-primary auth-btn">Salvar e entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="configuracoes.js"></script>
+</body>
+</html>

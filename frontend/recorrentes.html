@@ -22,6 +22,7 @@
           <h1 class="app-title">Registros Recorrentes</h1>
           <p class="app-subtitle">Mensais e anuais</p>
         </div>
+        <a href="configuracoes.html" class="btn-settings" title="Configurações">⚙️</a>
       </div>
       <div class="header-actions">
         <button id="btn-add-rec" class="btn-primary">+ Novo Recorrente</button>
@@ -40,6 +41,7 @@
               <th class="col-mes-anual">MÊS (ANUAL)</th>
               <th class="col-desc" style="text-align:left;">DISCRIMINAÇÃO</th>
               <th class="col-previsto">VALOR PREVISTO</th>
+              <th class="col-gerado-ate">GERADO ATÉ</th>
               <th class="col-actions"></th>
             </tr>
           </thead>
@@ -112,13 +114,20 @@
             </select>
           </div>
 
-          <!-- Apply-from — shown only in edit mode -->
-          <div class="form-group form-group--full" id="group-apply-from" style="display:none;">
-            <label for="form-apply-from">Aplicar alterações a partir de *</label>
-            <input type="month" id="form-apply-from" />
-            <small style="color:var(--text-secondary);margin-top:4px;">
-              Os registros individuais a partir deste mês serão recriados com os novos valores.
-            </small>
+          <!-- Período — sempre visível; labels mudam por modo -->
+          <div class="form-group form-group--full" id="group-periodo">
+            <label id="label-periodo" style="font-weight:600;">Período de geração</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;">
+              <div>
+                <label for="form-period-from" style="font-size:.78rem;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:4px;" id="label-period-from">Início</label>
+                <input type="month" id="form-period-from" style="width:100%" />
+              </div>
+              <div>
+                <label for="form-period-until" style="font-size:.78rem;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:4px;" id="label-period-until">Fim</label>
+                <input type="month" id="form-period-until" style="width:100%" />
+              </div>
+            </div>
+            <small id="hint-periodo" style="color:var(--text-secondary);margin-top:6px;display:block;"></small>
           </div>
         </div>
 
@@ -145,6 +154,54 @@
     </div>
   </div>
 
+
+  <!-- ── Modal Login ─────────────────────────────────────────── -->
+  <div id="login-modal" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-logo">💰</div>
+      <h2 class="auth-title">App Contas</h2>
+      <p class="auth-subtitle">Faça login para continuar</p>
+      <form id="login-form" autocomplete="on">
+        <div class="auth-field">
+          <label for="login-username">Usuário</label>
+          <input id="login-username" type="text" autocomplete="username" placeholder="Seu usuário" required />
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Senha</label>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="Sua senha" required />
+        </div>
+        <p id="login-error" class="auth-error hidden"></p>
+        <button id="login-submit" type="submit" class="btn-primary auth-btn">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal Primeiro Acesso ──────────────────────────────── -->
+  <div id="first-access-modal" class="auth-overlay hidden">
+    <div class="auth-card">
+      <div class="auth-logo">🔐</div>
+      <h2 class="auth-title">Primeiro Acesso</h2>
+      <p class="auth-subtitle">Por segurança, defina seu usuário e senha antes de continuar.</p>
+      <form id="first-access-form" autocomplete="off">
+        <div class="auth-field">
+          <label for="fa-username">Novo usuário</label>
+          <input id="fa-username" type="text" autocomplete="off" placeholder="Escolha um nome de usuário" required />
+        </div>
+        <div class="auth-field">
+          <label for="fa-password">Nova senha</label>
+          <input id="fa-password" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" required />
+        </div>
+        <div class="auth-field">
+          <label for="fa-password-confirm">Confirmar senha</label>
+          <input id="fa-password-confirm" type="password" autocomplete="new-password" placeholder="Repita a senha" required />
+        </div>
+        <p id="fa-error" class="auth-error hidden"></p>
+        <button id="fa-submit" type="submit" class="btn-primary auth-btn">Salvar e entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
   <script src="recorrentes.js"></script>
 </body>
 </html>

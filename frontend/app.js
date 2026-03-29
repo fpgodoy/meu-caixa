@@ -1,5 +1,6 @@
 /* ── Config ─────────────────────────────────────────────────────── */
-const API_BASE = `http://${window.location.hostname}:8001`;
+const API_BASE = '';   // nginx faz proxy de /api/ → backend:8000
+
 
 /* ── State ──────────────────────────────────────────────────────── */
 let currentDate = new Date();
@@ -98,7 +99,7 @@ async function loadTransactions() {
   monthLabelEl.textContent = monthLabel();
 
   try {
-    const res = await fetch(`${API_BASE}/api/transactions?mes=${anoMes()}&sort=${currentSort}`);
+    const res = await apiFetch(`${API_BASE}/api/transactions?mes=${anoMes()}&sort=${currentSort}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     transactions = await res.json();
     renderTable();
@@ -238,7 +239,7 @@ function renderTable() {
 
 /* ── PATCH helper ───────────────────────────────────────────────── */
 async function patchTx(id, data) {
-  const res = await fetch(`${API_BASE}/api/transactions/${id}`, {
+  const res = await apiFetch(`${API_BASE}/api/transactions/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -391,7 +392,7 @@ txForm.addEventListener('submit', async (e) => {
     if (id) {
       await patchTx(Number(id), payload);
     } else {
-      const res = await fetch(`${API_BASE}/api/transactions`, {
+      const res = await apiFetch(`${API_BASE}/api/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...payload, ano_mes: anoMes(), ordem: maxOrdem }),
@@ -521,7 +522,7 @@ batchForm.addEventListener('submit', async (e) => {
         ano_mes: anoMes(),
         ordem: maxOrdem + ix
       };
-      return fetch(`${API_BASE}/api/transactions`, {
+      return apiFetch(`${API_BASE}/api/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -551,7 +552,7 @@ delOverlay.addEventListener('click', (e) => { if (e.target === delOverlay) close
 document.getElementById('del-confirm').addEventListener('click', async () => {
   if (!deleteTargetId) return;
   try {
-    await fetch(`${API_BASE}/api/transactions/${deleteTargetId}`, { method: 'DELETE' });
+    await apiFetch(`${API_BASE}/api/transactions/${deleteTargetId}`, { method: 'DELETE' });
     closeDeleteModal();
     await loadTransactions();
   } catch (err) {
@@ -645,9 +646,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ── Init ───────────────────────────────────────────────────────── */
+window.onAuthSuccess = initApp;
+
 async function initApp() {
   try {
-    const res = await fetch(`${API_BASE}/api/default-month`);
+    const res = await apiFetch(`${API_BASE}/api/default-month`);
     if (res.ok) {
       const { default_month } = await res.json();
       if (default_month) {
@@ -660,4 +663,6 @@ async function initApp() {
   }
   loadTransactions();
 }
-initApp();
+
+// checkAuth inicia o fluxo; chama onAuthSuccess se autenticado
+checkAuth().then(user => { if (user) initApp(); });

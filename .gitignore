@@ -2,14 +2,19 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.env
+.env
+!.env.example
 venv/
 env/
 
-# Banco de dados
+# Banco de dados / volumes
 data/
+backups/
 pgdata/
 *.bak
+
+# Scripts legados (backup era container separado, agora integrado ao backend)
+backup/
 
 # SO / Editores
 .vscode/
