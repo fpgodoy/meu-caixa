@@ -80,7 +80,9 @@ No primeiro acesso, faça login com `admin` / `admin123` — o sistema solicitar
    - **Repository URL:** `https://github.com/fpgodoy/meu-caixa`
    - **Branch:** `main`
    - **Compose path:** `docker-compose.yml`
-3. Na seção **Environment variables**, adicione as mesmas variáveis do `.env`
+3. Na seção **Environment variables**, adicione as mesmas variáveis do `.env` e defina os caminhos locais (no servidor) para persistência de dados:
+   - `DB_DATA_PATH`: ex. `/var/lib/meu-caixa/data` (obrigatório para não perder os dados do sistema)
+   - `BACKUP_DATA_PATH`: ex. `/var/lib/meu-caixa/backups` (obrigatório para salvar os backups do banco de dados)
 4. Clique em **Deploy the stack**
 
 Para atualizar após mudanças no código:
