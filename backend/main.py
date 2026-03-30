@@ -52,7 +52,7 @@ models.Base.metadata.create_all(bind=engine)
 import seed_admin as _seed
 _seed.main()
 
-app = FastAPI(title="App Contas API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Meu Caixa API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

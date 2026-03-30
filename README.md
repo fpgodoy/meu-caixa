@@ -1,47 +1,124 @@
-# 💰 App Contas (Web Finance Tracker)
+# 💰 Meu Caixa
 
-Um sistema completo de controle de orçamento e finanças pessoais projetado para organização de receitas e despesas mensais, automatização de contas e uma experiência de usuário visualmente moderna e ágil.
+Self-hosted personal finance manager for monthly budget tracking. Built to run on a home server or NAS via Docker.
 
-![app-contas](https://img.shields.io/badge/Status-Ativo-success)
-
-## 🚀 Funcionalidades Principais
-- 📅 **Controle Mensal Descomplicado:** Controle facilmente as entradas bancárias do mês, contas a pagar e saídas efetivadas.
-- 🔁 **Automação de Recorrentes:** Crie e gerencie contas e fontes de renda (Mensais, Semestrais ou Anuais). Defina registros infinitos com facilidade e os edite de forma não-destrutiva (gerando histórico futuro).
-- 🔗 **Vínculo Flexível de Pagamentos:** Marque contas para serem lançadas no mês seguinte mantendo a data original. Ideal para salários que caem perto da virada do mês, mas fecham orçamentos do mês adiantado!
-- ⚡ **Lançamentos em Lote:** Precise faturar o estacionamento de vários dias? Selecione rapidamente vários dias num calendário visual e crie todos simultaneamente.
-- 🎯 **Ordenação Inteligente de Receitas:** O Dashboard detecta o fluxo das suas contas e pode ordenar cronologicamente, exibindo de forma clara **Receitas Primeiro**, ajudando a visualizar se a conta vai fechar!
-- 🧮 **Saldo Rotativo ("Rolagem" Mensal):** Ao virar o mês, veja um rastro contínuo gerado automaticamente entre o "Saldo do Mês Passado" e a previsão para o "Mês Que Vem".
-
-## 🛠️ Tecnologias Utilizadas
-O App Contas foi construído focando em uma arquitetura leve, conteinerizada e fullstack clássica sem overhead:
-
-- **Frontend:** Vanilla JavaScript, HTML5, CSS3 Custom Properties (Design Responsivo e Dark Theme nativo)
-- **Backend API:** Python com FastAPI (Rápido, tipado e com validações Pydantic)
-- **Banco de Dados:** PostgreSQL 16 com engine SQLAlchemy (ORM)
-- **Infraestrutura:** Docker e Docker Compose (Nginx para servir os arquivos e rede interna)
-
-## 💻 Como rodar o projeto localmente (Self-hosted)
-
-Pré-requisitos: Ter o [Docker](https://docs.docker.com/get-docker/) e o [Docker Compose](https://docs.docker.com/compose/install/) instalados.
-
-1. Clone o repositório na sua máquina:
-   ```bash
-   git clone https://github.com/SEU_USUARIO/app-contas.git
-   cd app-contas
-   ```
-
-2. Suba o ambiente via Docker Compose (este comando criará o PGBanco de dados, instalará o Python, levantará a API no FastAPI e servirá o Frontend no Nginx):
-   ```bash
-   docker-compose up --build -d
-   ```
-
-3. Pronto! Acesse o sistema através do seu navegador em:
-   **http://localhost:3000** 
-   *(Ou usando o IP local da sua máquina em outros dispositivos da rede, ex: http://192.168.0.x:3000)*
+[![GitHub](https://img.shields.io/badge/GitHub-fpgodoy%2Fmeu--caixa-blue?logo=github)](https://github.com/fpgodoy/meu-caixa)
+![Status](https://img.shields.io/badge/Status-Ativo-success)
 
 ---
 
-## 🗺️ Roadmap Atual
-Confira o arquivo [`TODO.md`](TODO.md) incluído na base para verificar os próximos updates mapeados para a ferramenta (Autenticação, Extrator JSON, Painel de Investimentos e Bind Mounts de Backup)! 
+## ✨ Funcionalidades
+
+- 📅 **Orçamento mensal** — controle entradas, saídas previstas e efetivadas por mês
+- 🔁 **Registros recorrentes** — gerencie contas fixas mensais e anuais; edite com retroatividade controlada por período
+- 🔗 **Vínculo de mês seguinte** — lance contas no mês atual mas vincule ao orçamento do mês seguinte
+- ⚡ **Lançamentos em lote** — crie múltiplos registros de uma vez via calendário visual
+- 📊 **Ordenação inteligente** — visualize por data ou com receitas primeiro para ver se o mês fecha
+- 🎨 **Dark mode nativo** — design moderno com tema escuro embutido
+- 💾 **Backup automático** — dump diário do banco às 02:00 UTC, com botão de backup manual e restauração pela interface
+- 🔐 **Autenticação JWT** — múltiplos usuários com controle de acesso; troca de credenciais no primeiro acesso
+
+---
+
+## 🛠️ Tecnologias
+
+| Camada | Tecnologia |
+|---|---|
+| Frontend | Vanilla JS, HTML5, CSS3 |
+| Backend | Python 3.12 + FastAPI |
+| Banco | PostgreSQL 16 + SQLAlchemy |
+| Infra | Docker, Docker Compose, Nginx |
+
+---
+
+## 🚀 Instalação (Self-hosted)
+
+### Pré-requisitos
+- [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/install/)
+
+### 1. Clone o repositório
+```bash
+git clone https://github.com/fpgodoy/meu-caixa.git
+cd meu-caixa
+```
+
+### 2. Configure as variáveis de ambiente
+```bash
+cp .env.example .env
+```
+Edite o `.env` com suas credenciais:
+```env
+POSTGRES_DB=appcontas
+POSTGRES_USER=contas
+POSTGRES_PASSWORD=sua_senha_forte_aqui
+
+# Gere com: python -c "import secrets; print(secrets.token_hex(32))"
+JWT_SECRET=sua_chave_secreta_jwt_aqui
+
+JWT_EXPIRE_HOURS=24   # Duração do token de sessão
+BACKUP_HOUR=2         # Hora UTC para backup automático (padrão: 02:00)
+```
+
+### 3. Suba os containers
+```bash
+docker compose up -d
+```
+
+### 4. Acesse
+**http://localhost:3000** ou `http://IP-DO-SERVIDOR:3000`
+
+No primeiro acesso, faça login com `admin` / `admin123` — o sistema solicitará a criação de novas credenciais.
+
+---
+
+## 🏭 Deploy em produção via Portainer
+
+### Stack via Repositório Git
+
+1. No Portainer: **Stacks → Add Stack → Repository**
+2. Preencha:
+   - **Repository URL:** `https://github.com/fpgodoy/meu-caixa`
+   - **Branch:** `main`
+   - **Compose path:** `docker-compose.yml`
+3. Na seção **Environment variables**, adicione as mesmas variáveis do `.env`
+4. Clique em **Deploy the stack**
+
+Para atualizar após mudanças no código:
+**Stacks → meu-caixa → Pull and redeploy**
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+meu-caixa/
+├── backend/          # API FastAPI (Python)
+│   ├── main.py       # Endpoints e lógica principal
+│   ├── models.py     # Modelos SQLAlchemy
+│   ├── schemas.py    # Schemas Pydantic
+│   ├── auth.py       # JWT e autenticação
+│   └── seed_admin.py # Criação do usuário inicial
+├── frontend/         # Interface web (Vanilla JS)
+│   ├── index.html    # Dashboard principal
+│   ├── recorrentes.html
+│   ├── configuracoes.html
+│   └── *.js / *.css
+├── db/
+│   └── init.sql      # Inicialização do PostgreSQL
+├── .env.example      # Template de variáveis de ambiente
+└── docker-compose.yml
+```
+
+> **Volumes gerados em runtime** (ignorados pelo Git):
+> - `./data/` — dados do PostgreSQL
+> - `./backups/` — dumps de backup
+
+---
+
+## 🗺️ Roadmap
+
+Veja o arquivo [`TODO.md`](TODO.md) para funcionalidades planejadas.
+
+---
 
 Feito com dedicação para uma vida financeira mais tranquila! 📈

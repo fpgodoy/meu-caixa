@@ -1,13 +1,21 @@
-# TODO & Ideias Futuras
-Este documento serve como um mapa de funcionalidades e melhorias mapeadas para o **App Contas**. 
+# TODO — Meu Caixa
 
-## 🔒 Segurança e Acesso
-- [ ] **Adicionar Autenticação:** Criar sistema de login com usuário e senha para proteger o acesso remoto (especialmente agora que pode ser acessado em rede local). O backend (FastAPI) precisará gerenciar JWT tokens e o Frontend mostrar um modal ou tela de login.
+Mapa de funcionalidades e melhorias planejadas para o **Meu Caixa**.
 
-## 💾 Banco de Dados & Estrutura
-- [x] **Ajustar mapeamento do Banco de Dados no Docker:** Bind mount `./data` configurado. Dados físicos visíveis na pasta do projeto.
-- [x] **Criar Ferramenta de Backup (Manual e Automatizado):** Backup automático diário via cron (container `backup`) + página de Configurações com botão para disparo manual. Dumps salvos em `./backups/`, mantendo os 7 mais recentes.
+## ✅ Concluído
 
-## 📊 Novas Funcionalidades (Features)
-- [ ] **Módulo de Controle de Investimentos (Grande Atualização):** Criar ecossistema paralelo ao das contas correntes. Deve conter tabelas próprias no banco de dados para rastrear aplicações, rendimentos, resgates, rentabilidade e ter um Dashboard exclusivo. 
-- [ ] **Exportação para CSV / Excel:** Criar botão no Frontend (e endpoint no Backend) permitindo baixar as tabelas mensais (com todas transações filtradas do mês atual) em formato `.csv` para conferência externa.
+- [x] **Autenticação JWT** — Login com usuário/senha, troca obrigatória no primeiro acesso, múltiplos usuários
+- [x] **Backup automatizado** — Dump diário via APScheduler (02:00 UTC) + backup manual pela interface + restauração de backups pela interface
+- [x] **Registros Recorrentes com período** — Criação e edição com controle de intervalo (início/fim); coluna "Gerado até" na listagem
+- [x] **Cores por tipo no dashboard** — Entradas e saídas com cores distintas nas colunas Previsto e Efetivo
+- [x] **Bind mount de dados** — `./data` e `./backups` mapeados como volumes no Docker Compose
+
+## 📊 Novas Funcionalidades
+
+- [ ] **Painel de Investimentos** — Controle simplificado do valor total investido no ano e metas anuais de investimento. Sem cadastro de cada produto; foco em visão consolidada (quanto investiu vs. quanto planejou investir no ano).
+- [ ] **Exportação CSV** — Botão para baixar as transações do mês atual em `.csv` para conferência externa.
+
+## 💡 Melhorias
+
+- [ ] **Filtro/busca no dashboard** — Campo de busca por discriminação dentro do mês atual.
+- [ ] **Tema claro** — Opção de alternar entre dark/light mode.
