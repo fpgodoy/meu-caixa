@@ -120,5 +120,3 @@ meu-caixa/
 Veja o arquivo [`TODO.md`](TODO.md) para funcionalidades planejadas.
 
 ---
-
-Feito com dedicação para uma vida financeira mais tranquila! 📈

@@ -14,8 +14,3 @@ Mapa de funcionalidades e melhorias planejadas para o **Meu Caixa**.
 
 - [ ] **Painel de Investimentos** — Controle simplificado do valor total investido no ano e metas anuais de investimento. Sem cadastro de cada produto; foco em visão consolidada (quanto investiu vs. quanto planejou investir no ano).
 - [ ] **Exportação CSV** — Botão para baixar as transações do mês atual em `.csv` para conferência externa.
-
-## 💡 Melhorias
-
-- [ ] **Filtro/busca no dashboard** — Campo de busca por discriminação dentro do mês atual.
-- [ ] **Tema claro** — Opção de alternar entre dark/light mode.
