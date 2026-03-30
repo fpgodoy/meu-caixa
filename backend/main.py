@@ -48,6 +48,10 @@ async def lifespan(app: FastAPI):
 
 models.Base.metadata.create_all(bind=engine)
 
+# Garante que o usuário admin inicial existe
+import seed_admin as _seed
+_seed.main()
+
 app = FastAPI(title="App Contas API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
@@ -237,11 +241,9 @@ class ChangeCredentialsRequest(BaseModel):
 
 class UserCreateRequest(BaseModel):
     username: str
-    display_name: str | None = None
     password: str
 
 class UserUpdateRequest(BaseModel):
-    display_name: str | None = None
     password: str | None = None
     is_active: bool | None = None
 
@@ -261,7 +263,6 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     return {
         "access_token": token,
         "token_type": "bearer",
-        "display_name": user.display_name or user.username,
         "must_change_password": user.must_change_password,
     }
 
@@ -271,7 +272,6 @@ def me(current_user: models.User = Depends(get_current_user)):
     return {
         "id": current_user.id,
         "username": current_user.username,
-        "display_name": current_user.display_name or current_user.username,
         "must_change_password": current_user.must_change_password,
     }
 
@@ -299,7 +299,6 @@ def change_credentials(
     return {
         "access_token": token,
         "token_type": "bearer",
-        "display_name": current_user.display_name or current_user.username,
         "must_change_password": False,
     }
 
@@ -315,7 +314,6 @@ def list_users(
         {
             "id": u.id,
             "username": u.username,
-            "display_name": u.display_name or u.username,
             "is_active": u.is_active,
             "created_at": u.created_at.strftime("%d/%m/%Y") if u.created_at else None,
         }
@@ -333,7 +331,6 @@ def create_user(
         raise HTTPException(status_code=400, detail="Nome de usuário já está em uso")
     user = models.User(
         username=payload.username,
-        display_name=payload.display_name,
         hashed_password=get_password_hash(payload.password),
         is_active=True,
         must_change_password=False,
@@ -354,8 +351,6 @@ def update_user(
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    if payload.display_name is not None:
-        user.display_name = payload.display_name
     if payload.password is not None:
         user.hashed_password = get_password_hash(payload.password)
     if payload.is_active is not None:

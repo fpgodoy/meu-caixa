@@ -132,7 +132,7 @@
           </div>
           <div class="form-group">
             <label for="form-vencimento">Vencimento</label>
-            <input type="date" id="form-vencimento" />
+            <input type="date" id="form-vencimento" required />
           </div>
           <div class="form-group">
             <label for="form-data-pagamento">Data Pagamento</label>
@@ -242,13 +242,19 @@
   </div>
 
 
-  <!-- ── Modal Login ─────────────────────────────────────────── -->
+  <!-- ── Modal Login ───────────────────────────────────── -->
   <div id="login-modal" class="auth-overlay">
     <div class="auth-card">
       <div class="auth-logo">💰</div>
       <h2 class="auth-title">App Contas</h2>
-      <p class="auth-subtitle">Faça login para continuar</p>
-      <form id="login-form" autocomplete="on">
+      <!-- Spinner mostrado enquanto valida o token -->
+      <div class="auth-checking">
+        <div class="spinner" style="margin:0 auto 8px;"></div>
+        <p style="color:var(--text-secondary);font-size:.85rem;">Verificando sessão…</p>
+      </div>
+      <!-- Formulário oculto até token ser inválido -->
+      <p class="auth-subtitle" style="display:none">Faça login para continuar</p>
+      <form id="login-form" autocomplete="on" style="display:none">
         <div class="auth-field">
           <label for="login-username">Usuário</label>
           <input id="login-username" type="text" autocomplete="username" placeholder="Seu usuário" required />

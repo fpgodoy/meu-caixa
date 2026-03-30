@@ -68,7 +68,7 @@ function logout() {
 // ── Renderizar nome no header ─────────────────────────────────────
 function renderUserInfo(user) {
   const el = document.getElementById('auth-user-display');
-  if (el) el.textContent = user.display_name || user.username;
+  if (el) el.textContent = user.username || '';
 }
 
 // ── Modal de login ────────────────────────────────────────────────
@@ -76,6 +76,13 @@ function showLoginModal() {
   const m = document.getElementById('login-modal');
   if (m) {
     m.classList.remove('hidden');
+    // Esconde spinner e exibe o formulário
+    const spinner  = m.querySelector('.auth-checking');
+    const subtitle = m.querySelector('.auth-subtitle');
+    const form     = m.querySelector('#login-form');
+    if (spinner)  spinner.style.display  = 'none';
+    if (subtitle) subtitle.style.display = '';
+    if (form)     form.style.display     = '';
     document.getElementById('login-error')?.classList.add('hidden');
     document.getElementById('login-username')?.focus();
   }
@@ -115,8 +122,8 @@ async function handleLogin(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Erro ao fazer login');
 
-    saveToken(data.access_token, { display_name: data.display_name, username });
-    renderUserInfo({ display_name: data.display_name });
+    saveToken(data.access_token, { username });
+    renderUserInfo({ username });
 
     if (data.must_change_password) {
       showChangeCredentialsModal();
@@ -160,8 +167,8 @@ async function handleChangeCredentials(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Erro ao salvar');
 
-    saveToken(data.access_token, { display_name: data.display_name, username: newUsername });
-    renderUserInfo({ display_name: data.display_name });
+    saveToken(data.access_token, { username: newUsername });
+    renderUserInfo({ username: newUsername });
 
     const m = document.getElementById('first-access-modal');
     if (m) m.classList.add('hidden');

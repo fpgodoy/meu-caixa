@@ -155,13 +155,17 @@
   </div>
 
 
-  <!-- ── Modal Login ─────────────────────────────────────────── -->
+  <!-- ── Modal Login ────────────────────────────────────── -->
   <div id="login-modal" class="auth-overlay">
     <div class="auth-card">
       <div class="auth-logo">💰</div>
       <h2 class="auth-title">App Contas</h2>
-      <p class="auth-subtitle">Faça login para continuar</p>
-      <form id="login-form" autocomplete="on">
+      <div class="auth-checking">
+        <div class="spinner" style="margin:0 auto 8px;"></div>
+        <p style="color:var(--text-secondary);font-size:.85rem;">Verificando sessão…</p>
+      </div>
+      <p class="auth-subtitle" style="display:none">Faça login para continuar</p>
+      <form id="login-form" autocomplete="on" style="display:none">
         <div class="auth-field">
           <label for="login-username">Usuário</label>
           <input id="login-username" type="text" autocomplete="username" placeholder="Seu usuário" required />

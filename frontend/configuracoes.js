@@ -134,7 +134,6 @@ function renderUserList(users) {
       <thead>
         <tr style="color:var(--text-secondary);border-bottom:1px solid var(--border);">
           <th style="text-align:left;padding:8px 12px;font-weight:600">Usuário</th>
-          <th style="text-align:left;padding:8px 12px;font-weight:600">Nome</th>
           <th style="text-align:left;padding:8px 12px;font-weight:600">Criado em</th>
           <th style="text-align:left;padding:8px 12px;font-weight:600">Status</th>
           <th style="padding:8px 12px"></th>
@@ -144,7 +143,6 @@ function renderUserList(users) {
         ${users.map(u => `
           <tr style="border-bottom:1px solid var(--border-light)">
             <td style="padding:10px 12px;font-family:monospace;color:var(--text-primary)">${u.username}</td>
-            <td style="padding:10px 12px;color:var(--text-secondary)">${u.display_name || '—'}</td>
             <td style="padding:10px 12px;color:var(--text-secondary)">${u.created_at || '—'}</td>
             <td style="padding:10px 12px">
               <span style="
@@ -186,7 +184,6 @@ function openUserModal(userId, users) {
   document.getElementById('user-modal-title').textContent = user ? 'Editar Usuário' : 'Novo Usuário';
   document.getElementById('user-form-id').value      = userId || '';
   document.getElementById('user-form-username').value = user?.username || '';
-  document.getElementById('user-form-display').value  = user?.display_name || '';
   document.getElementById('user-form-password').value = '';
   document.getElementById('user-form-error').classList.add('hidden');
   userModalOverlay.classList.remove('hidden');
@@ -201,11 +198,10 @@ document.getElementById('user-form-cancel')?.addEventListener('click', closeUser
 userModalOverlay?.addEventListener('click', e => { if (e.target === userModalOverlay) closeUserModal(); });
 
 document.getElementById('user-form-submit')?.addEventListener('click', async () => {
-  const id          = document.getElementById('user-form-id').value;
-  const username    = document.getElementById('user-form-username').value.trim();
-  const displayName = document.getElementById('user-form-display').value.trim();
-  const password    = document.getElementById('user-form-password').value;
-  const errEl       = document.getElementById('user-form-error');
+  const id       = document.getElementById('user-form-id').value;
+  const username = document.getElementById('user-form-username').value.trim();
+  const password = document.getElementById('user-form-password').value;
+  const errEl    = document.getElementById('user-form-error');
 
   if (!username) { errEl.textContent = 'Nome de usuário é obrigatório.'; errEl.classList.remove('hidden'); return; }
   if (!id && !password) { errEl.textContent = 'Informe uma senha para o novo usuário.'; errEl.classList.remove('hidden'); return; }
@@ -214,7 +210,7 @@ document.getElementById('user-form-submit')?.addEventListener('click', async () 
   try {
     let res;
     if (id) {
-      const body = { display_name: displayName || null };
+      const body = {};
       if (password) body.password = password;
       res = await apiFetch(`/api/users/${id}`, {
         method: 'PUT',
@@ -223,7 +219,7 @@ document.getElementById('user-form-submit')?.addEventListener('click', async () 
     } else {
       res = await apiFetch('/api/users', {
         method: 'POST',
-        body: JSON.stringify({ username, display_name: displayName || null, password }),
+        body: JSON.stringify({ username, password }),
       });
     }
     const data = await res.json();
