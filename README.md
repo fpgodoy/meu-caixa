@@ -81,10 +81,11 @@ No primeiro acesso, faça login com `admin` / `admin123` — o sistema solicitar
    - **Branch:** `main`
    - **Compose path:** `docker-compose.yml`
 3. Na seção **Environment variables**, adicione as mesmas variáveis do `.env` e defina os caminhos locais (no servidor) para persistência de dados:
-   - `DB_DATA_PATH`: ex. `/var/lib/meu-caixa/data` (obrigatório para não perder os dados do sistema)
-   - `BACKUP_DATA_PATH`: ex. `/var/lib/meu-caixa/backups` (obrigatório para salvar os backups do banco de dados)
+   - `DB_DATA_PATH`: ex. `/var/lib/meu-caixa/data` (obrigatório para não perder os dados do banco)
+   - `BACKUP_DATA_PATH`: ex. `/var/lib/meu-caixa/backups` (obrigatório para salvar os backups)
+   - *Opcional*: `APP_PORT` para alterar a porta padrão de acesso (padrão: `3333`)
 4. Clique em **Deploy the stack**
-5. Acesse a aplicação em **http://IP-DO-SERVIDOR:3333**
+5. Acesse a aplicação em **http://IP-DO-SERVIDOR:3333** (ou na porta que você definiu)
 
 Para atualizar após mudanças no código:
 **Stacks → meu-caixa → Pull and redeploy**
