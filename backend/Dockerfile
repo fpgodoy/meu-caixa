@@ -12,4 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Garante permissão de execução no entrypoint
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]
