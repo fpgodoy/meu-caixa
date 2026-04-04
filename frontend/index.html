@@ -160,7 +160,10 @@
   <div id="batch-modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="batch-modal-title">
     <div class="modal">
       <div class="modal-header">
-        <h2 id="batch-modal-title">Criar Vários Registros (<span id="batch-month-title"></span>)</h2>
+        <h2 id="batch-modal-title" style="display:flex;align-items:center;">
+          Criar Vários Registros
+          <select id="batch-month-sel" style="font-size:0.9rem;margin-left:12px;font-weight:normal;border:1px solid var(--border);border-radius:4px;padding:4px 8px;background:var(--bg-card);color:var(--text-primary);cursor:pointer;"></select>
+        </h2>
         <button id="batch-modal-close" class="modal-close" aria-label="Fechar">&times;</button>
       </div>
       <form id="batch-form" class="modal-form" autocomplete="off">
@@ -218,6 +221,17 @@
       <button id="pay-cancel-btn"  class="btn-ghost btn-sm">Cancelar</button>
       <button id="pay-clear-btn"   class="btn-ghost btn-sm">Limpar</button>
       <button id="pay-confirm-btn" class="btn-primary btn-sm">OK</button>
+    </div>
+  </div>
+
+  <!-- ── Efetivo popover ───────────────────────────────────────── -->
+  <div id="efetivo-popover" class="pay-popover hidden" role="dialog" aria-label="Informar valor efetivo">
+    <p class="pay-popover-title">Valor Efetivo (R$)</p>
+    <input type="number" id="efetivo-val-input" step="0.01" min="0" placeholder="0.00" style="width: 100%; margin-bottom: 12px; padding: 6px; border: 1px solid var(--border); border-radius: 4px;" />
+    <div class="pay-popover-actions">
+      <button id="efetivo-cancel-btn"  class="btn-ghost btn-sm">Cancelar</button>
+      <button id="efetivo-clear-btn"   class="btn-ghost btn-sm">Limpar</button>
+      <button id="efetivo-confirm-btn" class="btn-primary btn-sm">OK</button>
     </div>
   </div>
 

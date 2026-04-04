@@ -611,6 +611,19 @@ def generate_transactions(
             until_year  = from_year + 4
             until_month = rec.mes_anual or 1
 
+    if rec.vincula_proximo_mes:
+        if from_month == 1:
+            from_month = 12
+            from_year -= 1
+        else:
+            from_month -= 1
+            
+        if until_month == 1:
+            until_month = 12
+            until_year -= 1
+        else:
+            until_month -= 1
+
     rows = []
 
     if rec.periodicidade == "mensal":

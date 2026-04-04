@@ -127,13 +127,18 @@ function computeSummary() {
   let totalPending = 0;
 
   transactions.forEach((tx) => {
-    if (tx.tipo === 'entrada') {
-      totalIncome += tx.efetivo != null ? Number(tx.efetivo) : (tx.previsto != null ? Number(tx.previsto) : 0);
+    if (tx.is_special && tx.ordem === 9999) return; // skip last anchor
+    
+    const isEntrada = (tx.is_special && tx.ordem === 0) ? true : tx.tipo === 'entrada';
+    const val = tx.efetivo != null ? Number(tx.efetivo) : (tx.previsto != null ? Number(tx.previsto) : 0);
+    
+    if (isEntrada) {
+      totalIncome += val;
     } else {
       if (tx.efetivo != null) {
-        totalExpense += Number(tx.efetivo);
+        totalExpense += val;
       } else if (tx.previsto != null) {
-        totalPending += Number(tx.previsto);
+        totalPending += val;
       }
     }
   });
@@ -189,8 +194,8 @@ function renderTable() {
       : `<span class="empty-val">—</span>`;
 
     const efetFormatted = efetSigned != null
-      ? `<span class="${isEntrada ? 'is-entrada-val' : 'is-saida-val'}">${fmt(efetSigned)}</span>`
-      : `<span class="empty-val">—</span>`;
+      ? `<span class="${isEntrada ? 'is-entrada-val' : 'is-saida-val'}" data-efetivo-id="${tx.id}" style="cursor:pointer;" title="Editar Efetivo">${fmt(efetSigned)}</span>`
+      : `<span class="empty-val" data-efetivo-id="${tx.id}" style="cursor:pointer;" title="Informar Efetivo">—</span>`;
 
     const vencVal = fmtDate(tx.vencimento)      || '<span class="empty-val">—</span>';
     const pagVal  = fmtDate(tx.data_pagamento)  || '<span class="empty-val">—</span>';
@@ -221,6 +226,13 @@ function renderTable() {
       </td>
     `;
     tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('[data-efetivo-id]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEfetivoPopover(Number(el.dataset.efetivoId), el);
+    });
   });
 
   tbody.querySelectorAll('.status-badge.clickable').forEach((el) =>
@@ -428,18 +440,20 @@ document.getElementById('btn-move-month').addEventListener('click', async () => 
 const batchOverlay = document.getElementById('batch-modal-overlay');
 const batchForm = document.getElementById('batch-form');
 const batchCalendar = document.getElementById('batch-calendar');
-const batchMonthTitle = document.getElementById('batch-month-title');
+const batchMonthSel = document.getElementById('batch-month-sel');
 const btnBatchSave = document.getElementById('btn-batch-save');
 let batchSelectedDays = new Set();
+let batchSelectedDate = null;
 
-function renderBatchCalendar() {
+function renderBatchCalendar(offset = 0) {
+  const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
+  batchSelectedDate = targetDate;
+  
   batchCalendar.innerHTML = '';
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+  const year = targetDate.getFullYear();
+  const month = targetDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay(); // 0 (Sun) to 6 (Sat)
-  
-  batchMonthTitle.textContent = `${String(month + 1).padStart(2, '0')}/${year}`;
 
   const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   daysOfWeek.forEach((d) => {
@@ -482,9 +496,32 @@ document.getElementById('btn-batch').addEventListener('click', () => {
   batchSelectedDays.clear();
   btnBatchSave.textContent = 'Criar Registros (0)';
   batchForm.reset();
-  renderBatchCalendar();
+  
+  if (batchMonthSel) {
+    batchMonthSel.innerHTML = '';
+    const prevDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    const curDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const mNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    
+    const optPrev = document.createElement('option');
+    optPrev.value = '-1';
+    optPrev.textContent = `${mNames[prevDate.getMonth()]} ${prevDate.getFullYear()}`;
+    batchMonthSel.appendChild(optPrev);
+    
+    const optCur = document.createElement('option');
+    optCur.value = '0';
+    optCur.textContent = `${mNames[curDate.getMonth()]} ${curDate.getFullYear()}`;
+    optCur.selected = true;
+    batchMonthSel.appendChild(optCur);
+  }
+
+  renderBatchCalendar(0);
   batchOverlay.classList.remove('hidden');
   document.getElementById('batch-discriminacao').focus();
+});
+
+batchMonthSel?.addEventListener('change', (e) => {
+  renderBatchCalendar(Number(e.target.value));
 });
 
 function closeBatchModal() { batchOverlay.classList.add('hidden'); }
@@ -503,8 +540,9 @@ batchForm.addEventListener('submit', async (e) => {
   const tipo = document.getElementById('batch-tipo').value;
   const previsto = document.getElementById('batch-previsto').value;
   const maxOrdem = transactions.length ? Math.max(...transactions.map((t) => t.ordem)) + 1 : 1;
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+  const year = batchSelectedDate.getFullYear();
+  const month = batchSelectedDate.getMonth();
+  const targetAnoMes = `${year}-${String(month + 1).padStart(2, '0')}`;
 
   btnBatchSave.disabled = true;
   btnBatchSave.textContent = 'Criando...';
@@ -519,7 +557,7 @@ batchForm.addEventListener('submit', async (e) => {
         efetivo: null,
         vencimento: vencStr,
         data_pagamento: null,
-        ano_mes: anoMes(),
+        ano_mes: targetAnoMes,
         ordem: maxOrdem + ix
       };
       return apiFetch(`${API_BASE}/api/transactions`, {
@@ -567,8 +605,10 @@ function openPayPopover(id, anchorEl) {
 
   payTargetId = id;
 
-  // Pre-fill with existing date if AGEN
-  payDateInput.value = tx.data_pagamento ? tx.data_pagamento.split('T')[0] : '';
+  // Pre-fill with existing date if AGEN, otherwise default to vencimento
+  payDateInput.value = tx.data_pagamento 
+    ? tx.data_pagamento.split('T')[0] 
+    : (tx.vencimento ? tx.vencimento.split('T')[0] : '');
 
   // Position below the badge, adjusted to stay in viewport
   payPopover.classList.remove('hidden');   // make visible before measuring
@@ -640,8 +680,83 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closePayPopover();
+    if (typeof closeEfetivoPopover === 'function') closeEfetivoPopover();
     closeModal();
     closeDeleteModal();
+  }
+});
+
+/* ── Efetivo popover ────────────────────────────────────────────── */
+let efetivoTargetId = null;
+
+function openEfetivoPopover(id, anchorEl) {
+  const tx = transactions.find((t) => t.id === id);
+  if (!tx || tx.is_special) return;
+
+  efetivoTargetId = id;
+  const popover = document.getElementById('efetivo-popover');
+  const input = document.getElementById('efetivo-val-input');
+
+  // Pre-fill with existing if any, else default to previsto
+  input.value = tx.efetivo != null ? tx.efetivo : (tx.previsto != null ? tx.previsto : '');
+
+  popover.classList.remove('hidden');
+
+  const rect    = anchorEl.getBoundingClientRect();
+  const pWidth  = popover.offsetWidth  || 240;
+  const pHeight = popover.offsetHeight || 130;
+  const vw      = window.innerWidth;
+  const vh      = window.innerHeight;
+
+  let top  = rect.bottom + 8;
+  let left = rect.left;
+  if (left + pWidth > vw - 8) left = vw - pWidth - 8;
+  if (top + pHeight > vh - 8) top = rect.top - pHeight - 8;
+
+  popover.style.top  = `${top}px`;
+  popover.style.left = `${left}px`;
+  popover.style.animation = 'none';
+  requestAnimationFrame(() => { popover.style.animation = ''; });
+
+  input.focus();
+}
+
+function closeEfetivoPopover() {
+  const popover = document.getElementById('efetivo-popover');
+  if (popover) popover.classList.add('hidden');
+  efetivoTargetId = null;
+}
+
+document.getElementById('efetivo-confirm-btn')?.addEventListener('click', async () => {
+  if (!efetivoTargetId) return;
+  const input = document.getElementById('efetivo-val-input');
+  const val = input.value ? Number(input.value) : null;
+  try {
+    await patchTx(efetivoTargetId, { efetivo: val });
+    closeEfetivoPopover();
+    await loadTransactions();
+  } catch (err) {
+    alert(`Erro ao salvar: ${err.message}`);
+  }
+});
+
+document.getElementById('efetivo-clear-btn')?.addEventListener('click', async () => {
+  if (!efetivoTargetId) return;
+  try {
+    await patchTx(efetivoTargetId, { efetivo: null });
+    closeEfetivoPopover();
+    await loadTransactions();
+  } catch (err) {
+    alert(`Erro ao limpar: ${err.message}`);
+  }
+});
+
+document.getElementById('efetivo-cancel-btn')?.addEventListener('click', closeEfetivoPopover);
+
+document.addEventListener('click', (e) => {
+  const popover = document.getElementById('efetivo-popover');
+  if (popover && !popover.classList.contains('hidden') && !popover.contains(e.target)) {
+    closeEfetivoPopover();
   }
 });
 
