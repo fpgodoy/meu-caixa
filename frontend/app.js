@@ -557,22 +557,19 @@ batchForm.addEventListener('submit', async (e) => {
   const tipo = document.getElementById('batch-tipo').value;
   const previsto = document.getElementById('batch-previsto').value;
   const maxOrdem = transactions.length ? Math.max(...transactions.map((t) => t.ordem)) + 1 : 1;
-  const year = batchSelectedDate.getFullYear();
-  const month = batchSelectedDate.getMonth();
-  const targetAnoMes = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const targetAnoMes = anoMes();
 
   btnBatchSave.disabled = true;
   btnBatchSave.textContent = 'Criando...';
 
   try {
-    const promises = Array.from(batchSelectedDays).map((day, ix) => {
-      const vencStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const promises = Array.from(batchSelectedDays).map((dateStr, ix) => {
       const payload = {
         discriminacao,
         tipo,
         previsto: previsto ? Number(previsto) : null,
         efetivo: null,
-        vencimento: vencStr,
+        vencimento: dateStr,
         data_pagamento: null,
         ano_mes: targetAnoMes,
         ordem: maxOrdem + ix
