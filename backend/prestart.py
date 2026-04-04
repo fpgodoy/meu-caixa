@@ -60,13 +60,14 @@ def main():
 
     engine = get_engine()
     try:
+        transactions_exists   = table_exists(engine, "transactions")
         users_exists          = table_exists(engine, "users")
         alembic_version_exists = table_exists(engine, "alembic_version")
     finally:
         # Libera a conexão de inspeção — o Alembic abrirá a sua própria
         engine.dispose()
 
-    if not users_exists:
+    if not transactions_exists:
         # ── Caso 1: Banco zerado / nova instalação ────────────────
         print("📦 [prestart] Banco vazio detectado. Criando estrutura via Alembic...")
         run_alembic(["upgrade", "head"])
@@ -75,6 +76,12 @@ def main():
     elif not alembic_version_exists:
         # ── Caso 2: Banco existente sem controle do Alembic ───────
         # Isso ocorre no primeiro deploy após a adição do Alembic ao projeto.
+        if not users_exists:
+            # We must create it since the database has data but no users!
+            import models
+            print("👤 [prestart] Tabela de 'users' não encontrada em banco legado. Criando...")
+            models.Base.metadata.create_all(engine, tables=[models.User.__table__])
+            
         # O 'stamp head' registra a migration baseline como já aplicada
         # sem executar o SQL de criação das tabelas (que já existem).
         print("🏷️  [prestart] Banco existente detectado (sem controle Alembic).")
