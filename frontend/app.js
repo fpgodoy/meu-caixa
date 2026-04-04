@@ -440,102 +440,119 @@ document.getElementById('btn-move-month').addEventListener('click', async () => 
 const batchOverlay = document.getElementById('batch-modal-overlay');
 const batchForm = document.getElementById('batch-form');
 const batchCalendar = document.getElementById('batch-calendar');
-const batchMonthSel = document.getElementById('batch-month-sel');
+const batchMonthTitle = document.getElementById('batch-month-title');
 const btnBatchSave = document.getElementById('btn-batch-save');
 let batchSelectedDays = new Set();
-let batchSelectedDate = null;
 
-function renderBatchCalendar(offset = 0) {
-  const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
-  batchSelectedDate = targetDate;
-  
+function renderBatchCalendar() {
   batchCalendar.innerHTML = '';
-  const year = targetDate.getFullYear();
-  const month = targetDate.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDay = new Date(year, month, 1).getDay(); // 0 (Sun) to 6 (Sat)
-
-  const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-  daysOfWeek.forEach((d) => {
-    const el = document.createElement('div');
-    el.className = 'batch-day-header';
-    el.textContent = d;
-    batchCalendar.appendChild(el);
-  });
-
-  // Empty slots
-  for (let i = 0; i < firstDay; i++) {
-    const el = document.createElement('button');
-    el.className = 'batch-day';
-    el.disabled = true;
-    batchCalendar.appendChild(el);
+  
+  if (batchMonthTitle) {
+    batchMonthTitle.textContent = `${String(currentDate.getMonth() + 1).padStart(2, '0')}/${currentDate.getFullYear()}`;
   }
 
-  // Days
-  for (let d = 1; d <= daysInMonth; d++) {
-    const el = document.createElement('button');
-    el.className = 'batch-day';
-    el.textContent = d;
-    el.type = 'button';
-    if (batchSelectedDays.has(d)) el.classList.add('selected');
-    el.addEventListener('click', () => {
-      if (batchSelectedDays.has(d)) {
-        batchSelectedDays.delete(d);
-        el.classList.remove('selected');
-      } else {
-        batchSelectedDays.add(d);
-        el.classList.add('selected');
-      }
-      btnBatchSave.textContent = `Criar Registros (${batchSelectedDays.size})`;
+  const mNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const offsets = [-1, 0, 1];
+
+  offsets.forEach((offset) => {
+    const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
+    const year = targetDate.getFullYear();
+    const month = targetDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1).getDay();
+
+    const block = document.createElement('div');
+    block.className = 'batch-month-block';
+    if (offset === 0) block.id = 'batch-current-month';
+    
+    const title = document.createElement('h3');
+    title.textContent = `${mNames[month]} ${year}`;
+    title.style.textAlign = 'center';
+    title.style.fontSize = '0.9rem';
+    title.style.marginBottom = '8px';
+    title.style.color = offset === 0 ? 'var(--text-primary)' : 'var(--text-secondary)';
+    block.appendChild(title);
+    
+    const grid = document.createElement('div');
+    grid.className = 'batch-calendar-grid';
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
+    grid.style.gap = '6px';
+    grid.style.background = 'rgba(0,0,0,.2)';
+    grid.style.padding = '12px';
+    grid.style.borderRadius = 'var(--radius-sm)';
+    grid.style.border = '1px solid var(--border-light)';
+    
+    const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    daysOfWeek.forEach((d) => {
+      const el = document.createElement('div');
+      el.className = 'batch-day-header';
+      el.textContent = d;
+      grid.appendChild(el);
     });
-    batchCalendar.appendChild(el);
-  }
+
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div');
+      grid.appendChild(el);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el = document.createElement('button');
+      el.className = 'batch-day';
+      el.textContent = d;
+      el.type = 'button';
+      
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      
+      if (batchSelectedDays.has(dateStr)) el.classList.add('selected');
+
+      el.addEventListener('click', () => {
+        if (batchSelectedDays.has(dateStr)) {
+          batchSelectedDays.delete(dateStr);
+          el.classList.remove('selected');
+        } else {
+          batchSelectedDays.add(dateStr);
+          el.classList.add('selected');
+        }
+        btnBatchSave.textContent = `Criar Registros (${batchSelectedDays.size})`;
+      });
+
+      grid.appendChild(el);
+    }
+    
+    block.appendChild(grid);
+    batchCalendar.appendChild(block);
+  });
 }
 
 document.getElementById('btn-batch').addEventListener('click', () => {
   batchSelectedDays.clear();
   btnBatchSave.textContent = 'Criar Registros (0)';
   batchForm.reset();
-  
-  if (batchMonthSel) {
-    batchMonthSel.innerHTML = '';
-    const prevDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-    const curDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const mNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-    
-    const optPrev = document.createElement('option');
-    optPrev.value = '-1';
-    optPrev.textContent = `${mNames[prevDate.getMonth()]} ${prevDate.getFullYear()}`;
-    batchMonthSel.appendChild(optPrev);
-    
-    const optCur = document.createElement('option');
-    optCur.value = '0';
-    optCur.textContent = `${mNames[curDate.getMonth()]} ${curDate.getFullYear()}`;
-    optCur.selected = true;
-    batchMonthSel.appendChild(optCur);
-  }
 
-  renderBatchCalendar(0);
+  renderBatchCalendar();
+
   batchOverlay.classList.remove('hidden');
   document.getElementById('batch-discriminacao').focus();
-});
-
-batchMonthSel?.addEventListener('change', (e) => {
-  renderBatchCalendar(Number(e.target.value));
+  
+  setTimeout(() => {
+    const curr = document.getElementById('batch-current-month');
+    if (curr) {
+      batchCalendar.scrollTop = curr.offsetTop - batchCalendar.offsetTop - 10;
+    }
+  }, 10);
 });
 
 function closeBatchModal() { batchOverlay.classList.add('hidden'); }
 document.getElementById('batch-modal-close').addEventListener('click', closeBatchModal);
 document.getElementById('btn-batch-cancel').addEventListener('click', closeBatchModal);
-batchOverlay.addEventListener('click', (e) => { if (e.target === batchOverlay) closeBatchModal(); });
 
 batchForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (batchSelectedDays.size === 0) {
-    alert('Selecione pelo menos um dia no calendário.');
+    alert('Selecione ao menos um dia no calendário.');
     return;
   }
-  
   const discriminacao = document.getElementById('batch-discriminacao').value.trim();
   const tipo = document.getElementById('batch-tipo').value;
   const previsto = document.getElementById('batch-previsto').value;

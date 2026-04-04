@@ -160,17 +160,14 @@
   <div id="batch-modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="batch-modal-title">
     <div class="modal">
       <div class="modal-header">
-        <h2 id="batch-modal-title" style="display:flex;align-items:center;">
-          Criar Vários Registros
-          <select id="batch-month-sel" style="font-size:0.9rem;margin-left:12px;font-weight:normal;border:1px solid var(--border);border-radius:4px;padding:4px 8px;background:var(--bg-card);color:var(--text-primary);cursor:pointer;"></select>
-        </h2>
+        <h2 id="batch-modal-title">Criar Vários Registros (<span id="batch-month-title"></span>)</h2>
         <button id="batch-modal-close" class="modal-close" aria-label="Fechar">&times;</button>
       </div>
       <form id="batch-form" class="modal-form" autocomplete="off">
         <p style="margin-top:0;margin-bottom:12px;font-size:0.85rem;color:var(--text-secondary)">
-          Selecione os dias do mês em que deseja criar os registros:
+          Selecione os dias (arraste para ver os meses anterior e seguinte):
         </p>
-        <div id="batch-calendar" class="batch-calendar"></div>
+        <div id="batch-calendar" class="batch-calendar-scroll" style="max-height: 250px; overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: 16px;"></div>
 
         <div class="form-grid" style="margin-top:16px;">
           <div class="form-group form-group--full">
