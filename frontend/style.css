@@ -463,7 +463,7 @@ td.col-mov.negative { color: var(--red); }
   margin-bottom: 10px;
 }
 
-.pay-popover input[type="date"] {
+.pay-popover input {
   width: 100%;
   background: var(--bg-row);
   border: 1px solid var(--border-light);
@@ -476,7 +476,7 @@ td.col-mov.negative { color: var(--red); }
   margin-bottom: 10px;
   transition: border-color .15s;
 }
-.pay-popover input[type="date"]:focus {
+.pay-popover input:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
