@@ -19,3 +19,8 @@ Mapa de funcionalidades e melhorias planejadas para o **Meu Caixa**.
   - Quebrar "Painel Resumo" em formato de grade (2x2) ou lista (1x4) via media query.
   - Transformar as linhas da tabela de lançamentos em formato de "Data Cards" em telas estreitas (ocultar colunas tradicionais e empilhar a informação).
   - Ajustar grades e preenchimentos em Modais e Popovers para que obedeçam a tela sem vazar do viewport.
+
+- [ ] **Integração Home Assistant (Webhook / Alertas)** — Criar endpoint para que o Home Assistant capture automaticamente transações marcadas como "pendentes" (PEN) que possuam o prazo de vencimento para o "dia atual". Objetivo: Home Assistant despachar uma notificação PUSH/Alerta aos moradores ("A conta de Luz vence hoje e ainda não foi paga!").
+- [ ] **Extração Automática de Faturas (Água/Energia)** — Construir ferramenta para raspar/consultar diretamente os sites (ou APIs) de concessionárias, extraindo automaticamente os valores mensais e as respectivas datas de vencimento com base na Unidade Consumidora.
+  - Criar um painel de configuração para informar a URL da requisição, payload necessário e Códigos de Usuário.
+  - Priorizar simular/replicar a *própria requisição HTTP* que os portais originais costumam disparar pelo navegador, invés de UI scrapping complexo (ou o uso de uma API pública local caso exista).

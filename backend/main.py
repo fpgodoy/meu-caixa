@@ -712,28 +712,34 @@ def get_default_month(
     """
     Retorna o mês padrão a ser exibido ao abrir a aplicação.
 
-    Lógica:
-      - Busca a entrada (receita) confirmada com vencimento mais recente
-        que seja menor ou igual a hoje e maior ou igual ao mês atual.
-      - Se encontrar, retorna o ano_mes desse lançamento (pode ser futuro
-        se houver recebimentos pre-agendados para o mês corrente).
-      - Se não encontrar, retorna o mês atual.
-
-    O objetivo é abrir automaticamente no mês de trabalho mais relevante.
+    O mês padrão leva em conta o ciclo de pagamentos: busca-se
+    a saída pendente (data_pagamento nula) mais antiga a partir 
+    do mês anterior. Isso impede o avanço de mês caso ainda 
+    existam contas pendentes de fechamento do último salário.
+    Se não houver pendências, retorna o mês físico atual.
     """
+    from datetime import date, timedelta
+    
     today = date.today()
-    current = today.strftime("%Y-%m")
-    entrada = db.query(models.Transaction).filter(
-        models.Transaction.tipo       == "entrada",
-        models.Transaction.vencimento != None,
-        models.Transaction.vencimento <= today,
-        models.Transaction.ano_mes    >= current,
+    current_str = today.strftime("%Y-%m")
+    
+    # Determina o mês anterior ao atual
+    first_day_this_month = today.replace(day=1)
+    last_month_date = first_day_this_month - timedelta(days=1)
+    last_month_str = last_month_date.strftime("%Y-%m")
+    
+    # Busca a primeira pendência a partir do mês anterior
+    pendente = db.query(models.Transaction).filter(
+        models.Transaction.tipo == "saida",
         models.Transaction.is_special == False,
-    ).order_by(models.Transaction.ano_mes.desc()).first()
+        models.Transaction.data_pagamento == None,
+        models.Transaction.ano_mes >= last_month_str
+    ).order_by(models.Transaction.ano_mes.asc()).first()
 
-    if entrada:
-        return {"default_month": entrada.ano_mes}
-    return {"default_month": current}
+    if pendente:
+        return {"default_month": pendente.ano_mes}
+
+    return {"default_month": current_str}
 
 
 @app.get("/api/transactions", response_model=List[schemas.TransactionOut])
