@@ -11,10 +11,10 @@
   <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
-  <div class="app-wrapper">
+  <div class="container">
 
     <!-- ── Header ─────────────────────────────────────────────────── -->
-    <header class="app-header">
+    <header id="recorrentes-header" class="app-header">
       <div class="header-left">
         <a href="index.html" class="nav-btn" title="Voltar" style="text-decoration:none;font-size:1.1rem;">←</a>
         <span class="logo-icon">🔁</span>
@@ -22,7 +22,6 @@
           <h1 class="app-title">Registros Recorrentes</h1>
           <p class="app-subtitle">Mensais e anuais</p>
         </div>
-        <a href="configuracoes.html" class="btn-settings" title="Configurações">⚙️</a>
       </div>
       <div class="header-actions">
         <button id="btn-add-rec" class="btn-primary">+ Novo Recorrente</button>
@@ -89,7 +88,7 @@
               <option value="anual">Anual</option>
             </select>
           </div>
-          <div style="display:flex; gap:16px; align-items:flex-end;">
+          <div class="flex-row-mobile" style="display:flex; gap:16px; align-items:flex-end;">
             <div class="form-group" style="flex:1; margin-bottom:0;">
               <label for="form-dia">Dia de venc. (1–31) *</label>
               <input type="number" id="form-dia" min="1" max="31" required placeholder="Ex: 10" />

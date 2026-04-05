@@ -70,15 +70,28 @@ body { background: var(--bg); color: var(--text-primary); font-family: var(--fon
 .app-subtitle { font-size: .8rem; color: var(--text-secondary); }
 
 .month-nav { display: flex; align-items: center; gap: 10px; }
+
+/* ── Header icons and Nav ── */
+.btn-settings {
+  background: #374151;
+  color: #fff;
+  border: none;
+  width: 34px; height: 34px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: opacity .15s;
+  text-decoration: none;
+}
+.btn-settings:hover { opacity: .88; background: var(--accent); }
+
 .nav-btn {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
+  background: #374151;
+  border: none;
+  color: #fff;
   width: 32px; height: 32px;
   border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: background .15s, border-color .15s;
   display: flex; align-items: center; justify-content: center;
 }
 .nav-btn:hover { background: var(--bg-row-hover); border-color: var(--accent); }
@@ -154,10 +167,27 @@ body { background: var(--bg); color: var(--text-primary); font-family: var(--fon
   padding: 8px 18px;
   border-radius: var(--radius-sm);
   font-size: .85rem;
+  font-weight: 500;
   cursor: pointer;
   transition: border-color .15s, color .15s;
 }
 .btn-ghost:hover { border-color: var(--accent); color: var(--text-primary); }
+
+.btn-logout {
+  background: #374151;
+  border: none;
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .15s;
+}
+.btn-logout:hover { background: #ef4444; opacity: .88; }
 
 .btn-danger {
   background: var(--red);
@@ -501,15 +531,29 @@ tbody tr:hover .row-actions { opacity: 1; }
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-secondary);
-  width: 26px; height: 26px;
-  border-radius: var(--radius-sm);
+  width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: .85rem;
-  transition: background .15s, color .15s, border-color .15s;
+  transition: all .15s;
 }
-.icon-btn:hover { background: var(--bg-row-hover); color: var(--text-primary); border-color: var(--accent); }
-.icon-btn.del:hover { color: var(--red); border-color: var(--red); }
+.icon-btn:hover { background: var(--bg-row-hover); color: var(--text-primary); }
+
+.icon-btn.edit {
+  background: rgba(79, 126, 255, 0.12);
+  color: var(--accent);
+  border-color: rgba(79, 126, 255, 0.3);
+  font-size: 1.1rem;
+}
+.icon-btn.edit:hover { background: rgba(79, 126, 255, 0.25); border-color: var(--accent); color: #fff; }
+
+.icon-btn.del {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+  font-size: 1.1rem;
+}
+.icon-btn.del:hover { background: rgba(239, 68, 68, 0.25); border-color: #ef4444; color: #fff; }
 
 /* ── Loading / empty states ─────────────────────────────────────── */
 .loading-row td, .empty-row td {
@@ -640,10 +684,168 @@ tbody tr:hover .row-actions { opacity: 1; }
 @media (max-width: 900px) {
   .summary-cards { grid-template-columns: 1fr 1fr; }
 }
+
+@media (max-width: 768px) {
+  /* Tabela vira blocos (Data Cards) */
+  table thead { display: none; }
+  table, tbody { display: block; width: 100%; }
+  .table-wrapper { background: transparent; border: none; box-shadow: none; overflow: visible; }
+  
+  tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+    row-gap: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+  }
+  tbody tr.is-entrada { border-left-width: 4px; }
+  tbody tr.is-saida { border-left-width: 4px; border-left-color: var(--saida-color); }
+
+  /* Linha especial: mostrar desc, efetivo e ações */
+  tbody tr.special-row td:not(.col-desc):not(.col-efetivo):not(.col-actions) { display: none !important; }
+  
+  /* Ocultar coluna Saldo */
+  td.col-mov { display: none !important; }
+
+  td {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 0;
+    text-align: left !important;
+    border-bottom: none;
+    width: 100%;
+  }
+
+  td::before {
+    content: attr(data-label);
+    font-size: .68rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    margin-right: 0;
+  }
+
+  /* Discriminação (Título do Card) */
+  td.col-desc {
+    grid-column: 1 / -1;
+    order: 1;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+  }
+  td.col-desc::before { display: none; }
+
+  /* Ajustando ordens e pareando perfeitamente a leitura */
+  /* Coluna Esquerda (Alinhada a base esquerda) */
+  td.col-venc { order: 2; align-items: flex-start; text-align: left !important; }
+  td.col-previsto { order: 4; align-items: flex-start; text-align: left !important; }
+  td.col-status { order: 6; align-items: flex-start !important; justify-content: flex-start !important; }
+
+  /* Coluna Direita (Também alinhada à esquerda do eixo de sua coluna, criando organização 2 pilares) */
+  td.col-data { order: 3; align-items: flex-start; text-align: left !important; }
+  td.col-efetivo { order: 5; align-items: flex-start; text-align: left !important; }
+  
+  td.col-actions { 
+    grid-column: 2; 
+    order: 7;
+    flex-direction: row; 
+    align-items: flex-end; 
+    justify-content: flex-end; 
+  }
+  td.col-actions::before { display: none; }
+  .row-actions { opacity: 1; margin-top: auto; }
+
+  /* Ajustes específicos para a linha especial com 2 colunas ativas */
+  tbody tr.special-row td.col-desc { grid-column: 1 / -1; border-bottom: none; padding-bottom: 0; }
+  tbody tr.special-row td.col-efetivo { grid-column: 1; align-items: flex-start; }
+  tbody tr.special-row td.col-actions { grid-column: 2; justify-content: flex-end; }
+
+  /* Header adjustments */
+  .header-actions { flex-wrap: wrap; width: 100%; justify-content: flex-end; margin-top: 8px; }
+}
+
 @media (max-width: 580px) {
-  .app-header { flex-wrap: wrap; }
-  .summary-cards { grid-template-columns: 1fr; }
+  .app-header { flex-direction: column; align-items: center; gap: 12px; padding: 16px; }
+  .header-left { width: 100%; justify-content: space-between; }
+  .month-nav { width: 100%; justify-content: space-between; margin-bottom: 4px; }
+  .month-label { flex: 1; text-align: center; }
+  
+  .header-actions { flex-direction: row; flex-wrap: wrap; align-items: stretch; gap: 8px; margin-top: 0; justify-content: space-between; }
+  .auth-user-display { display: none; } /* Ocultar email em celular mto pequeno se apertar os botões */
+
+  /* Iconizar e unificar o tamanho dos botões do header */
+  .header-actions button, .header-actions a.btn-secondary {
+    width: 46px; height: 46px; /* Quadrados idênticos! */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    font-size: 0 !important;
+    border-radius: var(--radius-sm);
+  }
+  
+  /* Garantindo o mesmo padrão 46x46 sólido para as setas e configurações do Header */
+  .btn-settings, .nav-btn { width: 46px !important; height: 46px !important; }
+
+  #btn-batch::before { content: "☷"; font-size: 1.4rem; }
+  #btn-add::before, #btn-add-rec::before { content: "+"; font-size: 1.8rem; font-weight: 300; line-height: 1; }
+  #btn-recorrentes::before { content: "⟲"; font-size: 1.4rem; font-weight: bold; }
+  
+  /* Uso de SVG super-seguro (Heroicons door-arrow-left/right) porque chars unicode de power não existem em versões Android */
+  #btn-logout::before { 
+    content: ""; 
+    width: 24px; height: 24px; 
+    display: block;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75' /%3E%3C/svg%3E") no-repeat center;
+  }
+  
+  /* Header single line for Recorrentes em Mobile, ocupando o local do settings anterior */
+  #recorrentes-header { flex-direction: row; justify-content: space-between; align-items: center; padding: 15px; }
+  #recorrentes-header .header-left .app-subtitle { display: none; }
+  #recorrentes-header .app-title { font-size: 1.05rem; }
+  #recorrentes-header .header-actions { margin: 0; width: auto; justify-content: flex-end; }
+  
+  .summary-cards { 
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px;
+  }
+  .summary-cards .card { padding: 12px; }
+  .summary-cards .card-label { font-size: .65rem; }
+  .summary-cards .card-value { font-size: 1rem; }
+
   .form-grid { grid-template-columns: 1fr; }
+  .form-group--full, .form-group--check { grid-column: span 1 !important; }
+  
+  .modal-form { padding: 16px 16px 0; }
+  .modal-header { padding: 16px 16px 12px; }
+  .modal-footer { padding: 16px; }
+  .del-msg { padding: 16px; }
+  
+  .flex-row-mobile { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+  .flex-row-mobile > div { width: 100% !important; margin-bottom: 0 !important; }
+  
+  /* Popovers no meio da tela no modo mobile para facilitar e evitar cortes */
+  .pay-popover {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 90vw !important;
+    max-width: 320px !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,.8);
+    animation: fadeIn .2s !important;
+    padding: 20px;
+  }
 }
 
 /* ── Auth Overlay & Card ─────────────────────────────────────────── */

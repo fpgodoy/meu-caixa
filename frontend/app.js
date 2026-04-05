@@ -209,19 +209,19 @@ function renderTable() {
     tr.dataset.id  = tx.id;
 
     tr.innerHTML = `
-      <td class="col-mov ${saldoClass}">${fmt(saldo)}</td>
-      <td class="col-previsto">${prevFormatted}</td>
-      <td class="col-efetivo">${efetFormatted}</td>
-      <td class="col-venc">${vencVal}</td>
-      <td class="col-desc">${tx.discriminacao}</td>
-      <td class="col-data">${pagVal}</td>
-      <td class="col-status">
+      <td class="col-mov ${saldoClass}" data-label="SALDO">${fmt(saldo)}</td>
+      <td class="col-previsto" data-label="PREVISTO">${prevFormatted}</td>
+      <td class="col-efetivo" data-label="EFETIVO">${efetFormatted}</td>
+      <td class="col-venc" data-label="VENCIMENTO">${vencVal}</td>
+      <td class="col-desc" data-label="DISCRIMINAÇÃO">${tx.discriminacao}</td>
+      <td class="col-data" data-label="PAGAMENTO / AGEND.">${pagVal}</td>
+      <td class="col-status" data-label="STATUS">
         ${tx.is_special ? '' : `<span class="status-badge ${stClass}${isClickable ? ' clickable' : ''}" data-id="${tx.id}" aria-label="Status ${status}">${status}</span>`}
       </td>
       <td class="col-actions">
         <div class="row-actions">
-          <button class="icon-btn edit" data-id="${tx.id}" title="Editar">✏️</button>
-          ${tx.is_special ? '' : `<button class="icon-btn del" data-id="${tx.id}" title="Excluir">🗑️</button>`}
+          <button class="icon-btn edit" data-id="${tx.id}" title="Editar">✎</button>
+          ${tx.is_special ? '' : `<button class="icon-btn del" data-id="${tx.id}" title="Excluir">✕</button>`}
         </div>
       </td>
     `;

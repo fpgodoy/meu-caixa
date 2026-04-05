@@ -89,17 +89,17 @@ function renderTable() {
     const tr = document.createElement('tr');
     tr.className = isEntrada ? 'is-entrada' : 'is-saida';
     tr.innerHTML = `
-      <td class="col-tipo" style="text-align:center;">${tipoBadge}</td>
-      <td style="text-align:right;">Dia ${rec.dia_vencimento}</td>
-      <td style="text-align:center;">${periodLabel}</td>
-      <td style="text-align:center;">${mesAnualStr}</td>
-      <td class="col-desc">${rec.discriminacao}${vinculaBadge}</td>
-      <td style="text-align:right;"><span class="${valorClass}">${fmt(valorSigned)}</span></td>
-      <td style="text-align:center;color:var(--text-secondary);font-size:.82rem;">${geradoAte}</td>
-      <td class="col-actions">
+      <td class="col-tipo" style="text-align:center;" data-label="TIPO">${tipoBadge}</td>
+      <td style="text-align:right;" data-label="DIA / VENC.">Dia ${rec.dia_vencimento}</td>
+      <td style="text-align:center;" data-label="PERIODICIDADE">${periodLabel}</td>
+      <td style="text-align:center;" data-label="MÊS">${mesAnualStr}</td>
+      <td class="col-desc" data-label="DISCRIMINAÇÃO">${rec.discriminacao}${vinculaBadge}</td>
+      <td style="text-align:right;" data-label="PREVISTO"><span class="${valorClass}">${fmt(valorSigned)}</span></td>
+      <td style="text-align:center;color:var(--text-secondary);font-size:.82rem;" data-label="GERADO ATÉ">${geradoAte}</td>
+      <td class="col-actions" data-label="AÇÕES">
         <div class="row-actions" style="opacity:1;">
-          <button class="icon-btn edit" data-id="${rec.id}" title="Editar">✏️</button>
-          <button class="icon-btn del"  data-id="${rec.id}" title="Excluir">🗑️</button>
+          <button class="icon-btn edit" data-id="${rec.id}" title="Editar">✎</button>
+          <button class="icon-btn del"  data-id="${rec.id}" title="Excluir">✕</button>
         </div>
       </td>
     `;

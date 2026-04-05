@@ -217,13 +217,13 @@
 
     <!-- ── Header ────────────────────────────────────────────────── -->
     <header class="app-header">
-      <div class="header-left">
-        <span class="logo-icon">💰</span>
+      <div class="header-left" style="display: flex; align-items: center; gap: 12px;">
+        <a href="index.html" id="btn-settings" class="btn-settings" title="Voltar ao app" style="font-size:1.1rem;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);text-decoration:none;transition:border-color .15s,color .15s;margin:0;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text-primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">←</a>
+        <span class="logo-icon" style="margin-left:4px;">💰</span>
         <div>
           <h1 class="app-title">Configurações</h1>
           <p class="app-subtitle">Meu Caixa</p>
         </div>
-        <a href="index.html" id="btn-settings" class="btn-settings" title="Voltar ao app" style="margin-left:6px;font-size:1.1rem;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);text-decoration:none;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text-primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">←</a>
       </div>
     </header>
 
@@ -233,10 +233,10 @@
       <!-- Sidebar -->
       <nav class="config-nav" aria-label="Seções de configuração">
         <button class="config-nav-item active" data-section="backup" id="nav-backup">
-          <span class="nav-icon">💾</span> Backup
+          <span class="nav-icon">⭳</span> Backup
         </button>
         <button class="config-nav-item" data-section="usuarios" id="nav-usuarios">
-          <span class="nav-icon">👥</span> Usuários
+          <span class="nav-icon">⚇</span> Usuários
         </button>
       </nav>
 
@@ -246,7 +246,7 @@
         <!-- Backup Panel -->
         <section class="config-panel" id="section-backup">
           <div class="config-panel-header">
-            <span class="panel-icon">💾</span>
+            <span class="panel-icon">⭳</span>
             <h2>Backup do Banco de Dados</h2>
           </div>
           <div class="config-panel-body">
@@ -258,7 +258,7 @@
               </div>
               <button class="btn-primary" id="btn-backup">
                 <span class="btn-spinner"></span>
-                <span class="btn-label">💾 Criar Backup</span>
+                <span class="btn-label">⭳ Criar Backup</span>
               </button>
             </div>
 
@@ -275,7 +275,7 @@
         <section class="config-panel hidden" id="section-usuarios">
           <div class="config-panel-header" style="justify-content:space-between">
             <div style="display:flex;align-items:center;gap:12px">
-              <span class="panel-icon">👥</span>
+              <span class="panel-icon">⚇</span>
               <h2>Gerenciamento de Usuários</h2>
             </div>
             <button class="btn-primary" id="btn-new-user" style="font-size:.82rem;padding:7px 14px">
@@ -318,7 +318,7 @@
     </div>
   </div>
 
-  <!-- ── Modal Login ───────────────────────────────────────── -->
+  <!-- ── Modal Login ── -->
   <div id="login-modal" class="auth-overlay">
     <div class="auth-card">
       <div class="auth-logo">💰</div>

@@ -21,21 +21,21 @@
           <h1 class="app-title">Orçamento Mensal</h1>
           <p class="app-subtitle">Meu Caixa</p>
         </div>
-        <a href="configuracoes.html" class="btn-settings" title="Configurações" id="btn-settings">⚙️</a>
+        <a href="configuracoes.html" class="btn-settings" title="Configurações">⛭</a>
       </div>
 
       <nav class="month-nav" aria-label="Navegação por mês">
-        <button id="btn-prev" class="nav-btn" title="Mês anterior">&#8249;</button>
+        <button id="btn-prev" class="nav-btn" title="Mês anterior" style="font-size:1.05rem;">❮</button>
         <button id="month-label" class="month-label month-label-btn" title="Selecionar mês">Carregando…</button>
-        <button id="btn-next" class="nav-btn" title="Próximo mês">&#8250;</button>
+        <button id="btn-next" class="nav-btn" title="Próximo mês" style="font-size:1.05rem;">❯</button>
       </nav>
 
       <div class="header-actions">
         <span id="auth-user-display" class="auth-user-display"></span>
-        <button id="btn-logout" class="btn-logout" title="Sair">⏻</button>
-        <a href="recorrentes.html" class="btn-secondary" id="btn-recorrentes">🔁 Recorrentes</a>
-        <button id="btn-batch" class="btn-tertiary" title="Criar em lote">❖ Criar vários</button>
-        <button id="btn-add" class="btn-primary" title="Novo registro">+ Novo registro</button>
+        <button id="btn-logout" class="btn-logout" title="Sair">⍈</button>
+        <button id="btn-recorrentes" class="btn-secondary" title="Gerenciar Registros Recorrentes" onclick="window.location.href='recorrentes.html'">⟲ Recorrentes</button>
+        <button id="btn-batch" class="btn-tertiary">☷ Criar Vários</button>
+        <button id="btn-add" class="btn-primary">+ Novo Registro</button>
       </div>
     </header>
 
@@ -164,12 +164,7 @@
         <button id="batch-modal-close" class="modal-close" aria-label="Fechar">&times;</button>
       </div>
       <form id="batch-form" class="modal-form" autocomplete="off">
-        <p style="margin-top:0;margin-bottom:12px;font-size:0.85rem;color:var(--text-secondary)">
-          Selecione os dias (arraste para ver os meses anterior e seguinte):
-        </p>
-        <div id="batch-calendar" class="batch-calendar-scroll" style="max-height: 250px; overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: 16px;"></div>
-
-        <div class="form-grid" style="margin-top:16px;">
+        <div class="form-grid" style="margin-bottom:16px;">
           <div class="form-group form-group--full">
             <label for="batch-discriminacao">Discriminação *</label>
             <input type="text" id="batch-discriminacao" required placeholder="Ex: Diarista" />
@@ -177,8 +172,8 @@
           <div class="form-group">
             <label for="batch-tipo">Tipo *</label>
             <select id="batch-tipo">
-              <option value="saida">Saída (despesa)</option>
-              <option value="entrada">Entrada (receita)</option>
+               <option value="saida">Saída (despesa)</option>
+               <option value="entrada">Entrada (receita)</option>
             </select>
           </div>
           <div class="form-group">
@@ -186,6 +181,11 @@
             <input type="number" id="batch-previsto" step="0.01" min="0" required placeholder="0,00" />
           </div>
         </div>
+
+        <p style="margin-top:0;margin-bottom:12px;font-size:0.85rem;color:var(--text-secondary)">
+          Selecione os dias (arraste para ver os meses anterior e seguinte):
+        </p>
+        <div id="batch-calendar" class="batch-calendar-scroll" style="max-height: 250px; overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: 16px;"></div>
 
         <div class="modal-footer" style="padding:20px 0 0;">
           <button type="button" id="btn-batch-cancel" class="btn-ghost">Cancelar</button>
