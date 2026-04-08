@@ -9,17 +9,17 @@ Mapa de funcionalidades e melhorias planejadas para o **Meu Caixa**.
 - [x] **Registros Recorrentes com período** — Criação e edição com controle de intervalo (início/fim); coluna "Gerado até" na listagem
 - [x] **Cores por tipo no dashboard** — Entradas e saídas com cores distintas nas colunas Previsto e Efetivo
 - [x] **Bind mount de dados** — `./data` e `./backups` mapeados como volumes no Docker Compose
+- [x] **Layout Mobile Friendly** — Interface 100% responsiva com Data Cards em telas pequenas; modais e popovers adaptados ao viewport
+- [x] **Totalizadores inteligentes** — Entradas, saídas e "A Pagar" com prioridade efetivo → previsto; filtro de pendentes no total a pagar
+- [x] **Sanitização XSS** — `escHtml()` global aplicada em todos os campos de texto livre injetados via `innerHTML`
+- [x] **Validação de inputs no backend** — Formato `AAAA-MM` via Pydantic e nos parâmetros de query; intervalo de `dia_vencimento` (1–28) e `mes_anual` (1–12) com `Field(ge, le)`
+- [x] **Robustez no frontend** — Race condition em `loadTransactions` corrigida com contador de sequência; navegação de mês imutável com `new Date()`
 
 ## 📊 Novas Funcionalidades
 
 - [ ] **Painel de Investimentos** — Controle simplificado do valor total investido no ano e metas anuais de investimento. Sem cadastro de cada produto; foco em visão consolidada (quanto investiu vs. quanto planejou investir no ano).
 - [ ] **Exportação CSV** — Botão para baixar as transações do mês atual em `.csv` para conferência externa.
 - [ ] **Busca por Discriminação** — Campo de texto para pesquisar e filtrar transações cadastradas pelo nome/descrição.
-- [x] **Layout Mobile Friendly** — Adaptar interface para ficar 100% responsiva e de fácil leitura na tela de celulares.
-  - Quebrar "Painel Resumo" em formato de grade (2x2) ou lista (1x4) via media query.
-  - Transformar as linhas da tabela de lançamentos em formato de "Data Cards" em telas estreitas (ocultar colunas tradicionais e empilhar a informação).
-  - Ajustar grades e preenchimentos em Modais e Popovers para que obedeçam a tela sem vazar do viewport.
-
 - [ ] **Integração Home Assistant (Webhook / Alertas)** — Criar endpoint para que o Home Assistant capture automaticamente transações marcadas como "pendentes" (PEN) que possuam o prazo de vencimento para o "dia atual". Objetivo: Home Assistant despachar uma notificação PUSH/Alerta aos moradores ("A conta de Luz vence hoje e ainda não foi paga!").
 - [ ] **Extração Automática de Faturas (Água/Energia)** — Construir ferramenta para raspar/consultar diretamente os sites (ou APIs) de concessionárias, extraindo automaticamente os valores mensais e as respectivas datas de vencimento com base na Unidade Consumidora.
   - Criar um painel de configuração para informar a URL da requisição, payload necessário e Códigos de Usuário.

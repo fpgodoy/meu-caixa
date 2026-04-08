@@ -36,17 +36,17 @@ function renderBackupList(backups) {
     return;
   }
   container.innerHTML = backups.map(b => `
-    <div class="backup-item" id="bk-${b.arquivo}">
+    <div class="backup-item" id="bk-${escHtml(b.arquivo)}">
       <div>
-        <div class="backup-item-name">${b.arquivo}</div>
+        <div class="backup-item-name">${escHtml(b.arquivo)}</div>
         <div class="backup-item-meta">
           <span>${b.tamanho_kb} KB</span>
-          <span>${b.criado_em}</span>
+          <span>${escHtml(b.criado_em)}</span>
         </div>
       </div>
       <button
         class="btn-restore"
-        data-arquivo="${b.arquivo}"
+        data-arquivo="${escHtml(b.arquivo)}"
         title="Restaurar este backup"
       >
         <span class="restore-spinner"></span>
@@ -129,42 +129,29 @@ function renderUserList(users) {
     container.innerHTML = '<div class="backup-empty">Nenhum usuário cadastrado.</div>';
     return;
   }
-  container.innerHTML = `
-    <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
-      <thead>
-        <tr style="color:var(--text-secondary);border-bottom:1px solid var(--border);">
-          <th style="text-align:left;padding:8px 12px;font-weight:600">Usuário</th>
-          <th style="text-align:left;padding:8px 12px;font-weight:600">Criado em</th>
-          <th style="text-align:left;padding:8px 12px;font-weight:600">Status</th>
-          <th style="padding:8px 12px"></th>
-        </tr>
-      </thead>
-      <tbody>
-        ${users.map(u => `
-          <tr style="border-bottom:1px solid var(--border-light)">
-            <td style="padding:10px 12px;font-family:monospace;color:var(--text-primary)">${u.username}</td>
-            <td style="padding:10px 12px;color:var(--text-secondary)">${u.created_at || '—'}</td>
-            <td style="padding:10px 12px">
-              <span style="
-                padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:700;
-                background:${u.is_active ? 'var(--green-dim)' : 'var(--red-dim)'};
-                color:${u.is_active ? 'var(--green)' : 'var(--red)'};
-                border:1px solid ${u.is_active ? 'var(--green)' : 'var(--red)'};">
-                ${u.is_active ? 'Ativo' : 'Inativo'}
-              </span>
-            </td>
-            <td style="padding:10px 12px;display:flex;gap:8px;justify-content:flex-end">
-              <button class="icon-btn edit" data-uid="${u.id}" title="Editar">✏️</button>
-              ${u.is_active
-                ? `<button class="icon-btn del" data-uid="${u.id}" title="Desativar">🔒</button>`
-                : `<button class="icon-btn" data-uid="${u.id}" data-activate="true" title="Reativar" style="opacity:.7">🔓</button>`
-              }
-            </td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
+
+  // Usa divs em vez de <table> para evitar conflito com o CSS
+  // global de tabelas responsivas (que empilha células em telas pequenas).
+  container.innerHTML = users.map(u => `
+    <div class="user-item">
+      <div class="user-item-info">
+        <span class="user-item-name">${escHtml(u.username)}</span>
+        <div class="user-item-meta">
+          <span>${u.created_at || '—'}</span>
+          <span class="status-badge ${u.is_active ? 'status-ok' : 'status-venc'}">
+            ${u.is_active ? 'Ativo' : 'Inativo'}
+          </span>
+        </div>
+      </div>
+      <div class="user-item-actions">
+        <button class="icon-btn edit" data-uid="${u.id}" title="Editar">✎</button>
+        ${u.is_active
+          ? `<button class="icon-btn del" data-uid="${u.id}" title="Desativar">🔒</button>`
+          : `<button class="icon-btn" data-uid="${u.id}" data-activate="true" title="Reativar" style="opacity:.7">🔓</button>`
+        }
+      </div>
+    </div>
+  `).join('');
 
   // Botões editar
   container.querySelectorAll('.icon-btn.edit').forEach(btn => {
@@ -175,6 +162,7 @@ function renderUserList(users) {
     btn.addEventListener('click', () => toggleUserActive(Number(btn.dataset.uid), !!btn.dataset.activate));
   });
 }
+
 
 // ── Modal usuário ────────────────────────────────────────────────
 const userModalOverlay = document.getElementById('user-modal-overlay');

@@ -12,12 +12,14 @@ Gerenciador de finanças pessoais self-hosted para controle de orçamento mensal
 - 📅 **Orçamento mensal** — controle entradas e saídas previstas e efetivadas por mês
 - 🔁 **Registros recorrentes** — gerencie contas fixas mensais e anuais com retroatividade controlada por período
 - 🔗 **Vínculo ao mês seguinte** — lance contas no mês atual mas vincule ao orçamento do mês seguinte
+- 📊 **Totalizadores inteligentes** — entradas, saídas e "A Pagar" calculados com prioridade efetivo → previsto; o total a pagar filtra automaticamente apenas os registros pendentes
 - 📊 **Ordenação inteligente** — visualize por data ou com receitas primeiro para ver se o mês fecha
 - 🔄 **Propagação de saldo** — o valor em "Saldo para o próximo mês" é replicado automaticamente em "Saldo mês anterior" do mês seguinte
-- 🎨 **Dark mode nativo** — design moderno com tema escuro embutido
+- 🎨 **Dark mode nativo** — design moderno com tema escuro embutido e layout responsivo (mobile-friendly)
 - 💾 **Backup automático** — dump diário do banco em horário configurável, com backup manual e restauração pela interface
 - 🔐 **Autenticação JWT** — múltiplos usuários com controle de acesso; troca de credenciais obrigatória no primeiro acesso
 - 🗃️ **Migrations automáticas** — estrutura do banco versionada com Alembic; atualizações de código não causam perda de dados
+- 🛡️ **Segurança** — sanitização de XSS em todos os campos de texto livre; validação de inputs no backend (formato de datas, intervalos numéricos)
 
 ---
 

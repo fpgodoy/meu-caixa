@@ -3,6 +3,25 @@
 const AUTH_TOKEN_KEY = 'appcontas_token';
 const AUTH_USER_KEY  = 'appcontas_user';
 
+// ── Sanitização HTML (global, usada em todas as páginas) ────────────
+/**
+ * Escapa caracteres especiais de HTML em uma string.
+ * Use sempre que injetar dados vindos do servidor via innerHTML,
+ * para evitar XSS caso um campo contenha <, >, ", & ou ' .
+ *
+ * @param {string|null|undefined} str — valor a ser escapado
+ * @returns {string} — string segura para uso em innerHTML
+ */
+function escHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ── Token helpers ──────────────────────────────────────────────────
 function getToken()  { return localStorage.getItem(AUTH_TOKEN_KEY); }
 function saveToken(token, user) {

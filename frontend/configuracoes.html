@@ -206,6 +206,49 @@
       letter-spacing: .05em;
     }
 
+    /* Lista de usuários — div-based para evitar conflito com
+       o CSS global de tabelas responsivas em telas pequenas */
+    #users-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .user-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-row);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    .user-item-info { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
+
+    .user-item-name {
+      font-family: monospace;
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-item-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: .78rem;
+      color: var(--text-secondary);
+    }
+
+    .user-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
     @media (max-width: 700px) {
       .config-layout { grid-template-columns: 1fr; }
       .config-nav { position: static; display: flex; gap: 4px; flex-wrap: wrap; }

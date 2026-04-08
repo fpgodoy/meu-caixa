@@ -12,9 +12,10 @@ e serializa/desserializa os dados entre JSON e Python.
 """
 from datetime import date
 from decimal import Decimal
+import re
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -35,6 +36,17 @@ class TransactionBase(BaseModel):
     ordem:          int = 0              # Posição na lista do mês
     recorrente_id:  Optional[int] = None # FK para RecurringRecord (null = manual)
     is_special:     bool = False         # True apenas para as linhas âncora do mês
+
+    @field_validator('ano_mes')
+    @classmethod
+    def validar_ano_mes(cls, v: str) -> str:
+        """
+        Garante que ano_mes está no formato exato 'AAAA-MM'.
+        Rejeita strings como 'abc', '2024-13' ou '2024-1' com erro claro.
+        """
+        if not re.fullmatch(r'\d{4}-(0[1-9]|1[0-2])', v):
+            raise ValueError("ano_mes deve estar no formato AAAA-MM (ex: '2024-03')")
+        return v
 
 
 class TransactionCreate(TransactionBase):
@@ -81,9 +93,11 @@ class TransactionOut(TransactionBase):
 class RecurringBase(BaseModel):
     """Campos base de um registro recorrente."""
     tipo:               str = "saida"    # 'entrada' ou 'saida'
-    dia_vencimento:     int = 1          # Dia do mês (1–28)
+    # Limitado a 28 para garantir existência em todos os meses (fevereiro tem no mínimo 28 dias)
+    dia_vencimento:     int = Field(default=1, ge=1, le=28)
     periodicidade:      str = "mensal"   # 'mensal' ou 'anual'
-    mes_anual:          Optional[int] = None   # Mês do vencimento anual (1–12)
+    # Mês do vencimento anual — obrigatório quando periodicidade='anual'
+    mes_anual:          Optional[int] = Field(default=None, ge=1, le=12)
     discriminacao:      str              # Nome/descrição do lançamento
     valor_previsto:     Decimal          # Valor esperado
     vincula_proximo_mes: bool = False    # Se True, aparece no mês seguinte ao vencimento
@@ -103,9 +117,10 @@ class RecurringUpdate(BaseModel):
     controlar quais lançamentos futuros devem ser regenerados.
     """
     tipo:                Optional[str]     = None
-    dia_vencimento:      Optional[int]     = None
+    # Mantido no intervalo 1–28 para garantir validade em todos os meses
+    dia_vencimento:      Optional[int]     = Field(default=None, ge=1, le=28)
     periodicidade:       Optional[str]     = None
-    mes_anual:           Optional[int]     = None
+    mes_anual:           Optional[int]     = Field(default=None, ge=1, le=12)
     discriminacao:       Optional[str]     = None
     valor_previsto:      Optional[Decimal] = None
     vincula_proximo_mes: Optional[bool]    = None

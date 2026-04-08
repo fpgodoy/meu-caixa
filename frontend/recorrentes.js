@@ -93,7 +93,7 @@ function renderTable() {
       <td style="text-align:right;" data-label="DIA / VENC.">Dia ${rec.dia_vencimento}</td>
       <td style="text-align:center;" data-label="PERIODICIDADE">${periodLabel}</td>
       <td style="text-align:center;" data-label="MÊS">${mesAnualStr}</td>
-      <td class="col-desc" data-label="DISCRIMINAÇÃO">${rec.discriminacao}${vinculaBadge}</td>
+      <td class="col-desc" data-label="DISCRIMINAÇÃO">${escHtml(rec.discriminacao)}${vinculaBadge}</td>
       <td style="text-align:right;" data-label="PREVISTO"><span class="${valorClass}">${fmt(valorSigned)}</span></td>
       <td style="text-align:center;color:var(--text-secondary);font-size:.82rem;" data-label="GERADO ATÉ">${geradoAte}</td>
       <td class="col-actions" data-label="AÇÕES">
@@ -226,10 +226,7 @@ recForm.addEventListener('submit', async (e) => {
   }
 });
 
-/* ── Delete modal ───────────────────────────────────────────────── */
-
-
-/* ── Delete modal ───────────────────────────────────────────────── */
+/* ── Modal de confirmação de exclusão ────────────────────────────── */
 function openDeleteModal(id) {
   deleteTargetId = id;
   delOverlay.classList.remove('hidden');

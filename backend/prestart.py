@@ -77,7 +77,8 @@ def main():
         # ── Caso 2: Banco existente sem controle do Alembic ───────
         # Isso ocorre no primeiro deploy após a adição do Alembic ao projeto.
         if not users_exists:
-            # We must create it since the database has data but no users!
+            # A tabela 'users' não foi encontrada no banco legado.
+            # Precisamos criá-la pois o banco tem dados mas ainda não tem usuários.
             import models
             print("👤 [prestart] Tabela de 'users' não encontrada em banco legado. Criando...")
             models.Base.metadata.create_all(engine, tables=[models.User.__table__])

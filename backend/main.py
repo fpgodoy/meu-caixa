@@ -51,6 +51,25 @@ log = logging.getLogger("uvicorn.error")
 _scheduler = BackgroundScheduler(timezone="UTC")
 
 
+# Helper de validação de formato para parâmetros de query que representam mês.
+# Os schemas Pydantic já validam ano_mes nos corpos de requisição (TransactionBase),
+# mas os parâmetros de query (Optional[str]) chegam sem validação automática.
+import re as _re
+_ANO_MES_RE = _re.compile(r'^\d{4}-(0[1-9]|1[0-2])$')
+
+def _validar_ano_mes(valor: Optional[str], nome: str = "ano_mes") -> None:
+    """
+    Valida que `valor` está no formato 'AAAA-MM'.
+    Lánça HTTPException 400 se inválido, para retornar erro claro ao cliente.
+    Não faz nada se valor for None (parâmetro opcional não informado).
+    """
+    if valor is not None and not _ANO_MES_RE.match(valor):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Parâmetro '{nome}' inválido: '{valor}'. Use o formato AAAA-MM (ex: '2024-03').",
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -256,7 +275,8 @@ def restore_backup(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao ler backup: {e}")
 
-    # Fecha conexões ativas do pool para não conflitar com o DROP SCHEMA
+    # Fecha as conexões do pool SQLAlchemy antes do DROP SCHEMA,
+    # para evitar conflito com conexões ativas durante a reconstrução do banco.
     db.close()
     _engine.dispose()
 
@@ -292,7 +312,8 @@ def restore_backup(
             detail=f"Falha ao restaurar: {restore_res.stderr.decode()[:500]}",
         )
 
-    # Recria o pool para que as próximas requisições consigam conectar
+    # Descarta o pool para forçar reconexão limpa nas próximas requisições.
+    # O SQLAlchemy recria o pool automaticamente na próxima chamada a get_db().
     _engine.dispose()
 
     log.info("Banco restaurado com sucesso a partir de: %s", safe_name)
@@ -948,6 +969,10 @@ def create_recorrente(
     O db.flush() entre add e generate_transactions garante que o rec.id
     seja gerado pelo banco antes de ser referenciado nos lançamentos.
     """
+    # Valida formato dos parâmetros de query antes de usá-los
+    _validar_ano_mes(from_ano_mes, "from_ano_mes")
+    _validar_ano_mes(until_ano_mes, "until_ano_mes")
+
     rec = models.RecurringRecord(**payload.model_dump())
     db.add(rec)
     db.flush()  # obtém o rec.id sem commitar ainda
@@ -987,6 +1012,10 @@ def update_recorrente(
     rec = db.query(models.RecurringRecord).filter(models.RecurringRecord.id == rec_id).first()
     if not rec:
         raise HTTPException(status_code=404, detail="Recurring record not found")
+
+    # Valida formato dos parâmetros de query antes de qualquer operação no banco
+    _validar_ano_mes(apply_from, "apply_from")
+    _validar_ano_mes(generate_until, "generate_until")
 
     # Aplica as atualizações de campos do registro recorrente
     for field, value in payload.model_dump(exclude_unset=True).items():
