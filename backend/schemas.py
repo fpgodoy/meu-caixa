@@ -93,11 +93,11 @@ class TransactionOut(TransactionBase):
 class RecurringBase(BaseModel):
     """Campos base de um registro recorrente."""
     tipo:               str = "saida"    # 'entrada' ou 'saida'
-    # Limitado a 28 para garantir existência em todos os meses (fevereiro tem no mínimo 28 dias)
-    dia_vencimento:     int = Field(default=1, ge=1, le=28)
+    # Nota: sem restrição ge/le aqui pois RecurringOut herda esta classe.
+    # As restrições de intervalo são aplicadas nos schemas de entrada (Create e Update).
+    dia_vencimento:     int = 1
     periodicidade:      str = "mensal"   # 'mensal' ou 'anual'
-    # Mês do vencimento anual — obrigatório quando periodicidade='anual'
-    mes_anual:          Optional[int] = Field(default=None, ge=1, le=12)
+    mes_anual:          Optional[int] = None  # Mês do vencimento anual (1–12)
     discriminacao:      str              # Nome/descrição do lançamento
     valor_previsto:     Decimal          # Valor esperado
     vincula_proximo_mes: bool = False    # Se True, aparece no mês seguinte ao vencimento
@@ -105,8 +105,14 @@ class RecurringBase(BaseModel):
 
 
 class RecurringCreate(RecurringBase):
-    """Schema de entrada para criação de um novo registro recorrente."""
-    pass
+    """Schema de entrada para criação de um novo registro recorrente.
+
+    Adiciona validação de intervalo nos campos numéricos:
+      - dia_vencimento: 1–31 (valores > último dia do mês são clampados pelo generate_transactions)
+      - mes_anual: 1–12
+    """
+    dia_vencimento: int = Field(default=1, ge=1, le=31)
+    mes_anual:      Optional[int] = Field(default=None, ge=1, le=12)
 
 
 class RecurringUpdate(BaseModel):
@@ -117,8 +123,8 @@ class RecurringUpdate(BaseModel):
     controlar quais lançamentos futuros devem ser regenerados.
     """
     tipo:                Optional[str]     = None
-    # Mantido no intervalo 1–28 para garantir validade em todos os meses
-    dia_vencimento:      Optional[int]     = Field(default=None, ge=1, le=28)
+    # Intervalo 1–31; generate_transactions clampeia para o último dia do mês automaticamente
+    dia_vencimento:      Optional[int]     = Field(default=None, ge=1, le=31)
     periodicidade:       Optional[str]     = None
     mes_anual:           Optional[int]     = Field(default=None, ge=1, le=12)
     discriminacao:       Optional[str]     = None
