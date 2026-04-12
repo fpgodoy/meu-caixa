@@ -20,12 +20,15 @@ document.querySelectorAll('.config-nav-item').forEach(btn => {
 });
 
 // ── Utilitários ─────────────────────────────────────────────────
+// Timer do toast mantido como variável de módulo (não como propriedade DOM)
+let _toastTimer = null;
+
 function showToast(msg, type = 'success') {
   const toast = document.getElementById('backup-toast');
   toast.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
   toast.className = `show ${type}`;
-  clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => { toast.className = ''; }, 6000);
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { toast.className = ''; }, 6000);
 }
 
 // ── Backup ───────────────────────────────────────────────────────
@@ -62,7 +65,8 @@ function renderBackupList(backups) {
 
 async function loadBackups() {
   try {
-    const res  = await apiFetch('/api/backup/list');
+    const res = await apiFetch('/api/backup/list');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     renderBackupList(data.backups || []);
   } catch {

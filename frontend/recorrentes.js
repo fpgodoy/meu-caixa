@@ -187,9 +187,10 @@ modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) c
 /* ── Form submit ────────────────────────────────────────────────── */
 recForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const id    = document.getElementById('form-id').value;
-  const from  = periodFromEl.value  || currentAnoMes();
-  const until = periodUntilEl.value || addMonths(from, 23);
+  const id        = document.getElementById('form-id').value;
+  const from      = periodFromEl.value  || currentAnoMes();
+  const until     = periodUntilEl.value || addMonths(from, 23);
+  const submitBtn = recForm.querySelector('[type="submit"]');
 
   const payload = {
     discriminacao:      document.getElementById('form-discriminacao').value.trim(),
@@ -203,6 +204,8 @@ recForm.addEventListener('submit', async (e) => {
     vincula_proximo_mes: document.getElementById('form-vincula').checked,
   };
 
+  // Desabilita o botão durante o await para evitar duplo submit
+  submitBtn.disabled = true;
   try {
     let res;
     if (id) {
@@ -223,6 +226,8 @@ recForm.addEventListener('submit', async (e) => {
     await loadRecords();
   } catch (err) {
     alert(`Erro ao salvar: ${err.message}`);
+  } finally {
+    submitBtn.disabled = false;
   }
 });
 

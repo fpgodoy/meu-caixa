@@ -9,6 +9,7 @@ Tabelas:
   - RecurringRecord: registros financeiros recorrentes (configuração)
   - Transaction: lançamentos financeiros mensais (dados transacionais)
 """
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Numeric, Boolean, Date, DateTime, ForeignKey
 from sqlalchemy.sql import func
 
@@ -115,9 +116,7 @@ class Transaction(Base):
     recorrente_id  = Column(Integer, ForeignKey("recorrentes.id", ondelete="SET NULL"), nullable=True)
     is_special     = Column(Boolean, nullable=False, default=False)
     created_at     = Column(DateTime(timezone=True), server_default=func.now())
-    # ATENÇÃO: onupdate=func.now() com server_default NÃO funciona automaticamente
-    # no PostgreSQL via SQLAlchemy ORM — o ORM não emite 'SET updated_at = now()'
-    # nos UPDATEs a menos que seja um valor Python-side (não uma função SQL).
-    # Na prática, updated_at é preenchido na criação mas nunca atualizado após edições.
-    # Para corrigir, seria necessário adicionar um trigger BEFORE UPDATE via migration.
-    updated_at     = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    # onupdate usa datetime.now (callable Python-side) para que o SQLAlchemy ORM
+    # inclua SET updated_at = <valor> em todo UPDATE, sem necessidade de trigger.
+    # server_default cobre a criação inicial via INSERT.
+    updated_at     = Column(DateTime(timezone=True), server_default=func.now(), onupdate=lambda: datetime.now(timezone.utc))

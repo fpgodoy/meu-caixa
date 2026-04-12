@@ -183,8 +183,8 @@ async function handleChangeCredentials(e) {
       method: 'PUT',
       body: JSON.stringify({ new_username: newUsername, new_password: newPassword }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Erro ao salvar');
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || `Erro ao salvar (HTTP ${res.status})`);
 
     saveToken(data.access_token, { username: newUsername });
     renderUserInfo({ username: newUsername });

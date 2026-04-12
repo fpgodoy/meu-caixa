@@ -36,10 +36,18 @@ let transactions = [];
 // Persistido no localStorage para manter a preferência entre sessões
 let currentSort = localStorage.getItem('appContas_sort') || 'receitas';
 
+// Filtro de exibição: 'todos' (todos os registros) ou 'pendentes' (exclui status OK)
+// Persistido no localStorage para manter a preferência entre sessões
+let currentFilter = localStorage.getItem('appContas_filter') || 'todos';
+
 // Contador de sequência para evitar race condition em loadTransactions.
 // Cada chamada incrementa este número; respostas de chamadas anteriores
 // são descartadas comparando o valor no momento da resposta com o atual.
 let _loadSeq = 0;
+
+// AbortController da última requisição de loadTransactions.
+// Permite cancelar fetches em andamento ao trocar de mês rapidamente.
+let _abortController = null;
 
 
 /* ── Funções auxiliares (helpers) ────────────────────────────────── */
@@ -154,6 +162,9 @@ function statusClass(s) {
 function computeSaldos() {
   let saldo = 0;
   return transactions.map((tx) => {
+    // A âncora de fechamento (ordem=9999) não entra no cálculo acumulado,
+    // assim como é ignorada em computeSummary(). Retorna o saldo sem alterá-lo.
+    if (tx.is_special && tx.ordem === 9999) return saldo;
     const display = saldo; // saldo antes desta transação
     const val = tx.efetivo != null ? Number(tx.efetivo) : (tx.previsto != null ? Number(tx.previsto) : 0);
     const effectiveEntrada = tx.is_special ? true : tx.tipo === 'entrada';
@@ -204,12 +215,19 @@ let payTargetId     = null;
  * apenas a resposta mais recente será processada.
  */
 async function loadTransactions() {
+  // Cancela a requisição anterior se ainda estiver em andamento
+  if (_abortController) _abortController.abort();
+  _abortController = new AbortController();
+
   const seq = ++_loadSeq; // captura o número desta requisição
   tbody.innerHTML = `<tr class="loading-row"><td colspan="8"><div class="spinner"></div> Carregando…</td></tr>`;
   monthLabelEl.textContent = monthLabel();
 
   try {
-    const res = await apiFetch(`${API_BASE}/api/transactions?mes=${anoMes()}&sort=${currentSort}`);
+    const res = await apiFetch(
+      `${API_BASE}/api/transactions?mes=${anoMes()}&sort=${currentSort}`,
+      { signal: _abortController.signal },
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     // Descarta a resposta se já foi iniciada uma requisição mais recente
@@ -217,6 +235,8 @@ async function loadTransactions() {
     transactions = data;
     renderTable();
   } catch (err) {
+    // Ignora AbortError — a requisição foi cancelada intencionalmente por uma nova chamada
+    if (err.name === 'AbortError') return;
     if (seq !== _loadSeq) return; // descarta erro de requisição obsoleta
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:#ef4444;">
       Erro ao conectar com o servidor.<br><small>${err.message}</small></td></tr>`;
@@ -235,6 +255,21 @@ if (sortToggle) {
     currentSort = e.target.checked ? 'receitas' : 'cronologica';
     localStorage.setItem('appContas_sort', currentSort);
     loadTransactions();
+  });
+}
+
+
+/* ── Toggle de filtro de pendentes ────────────────────────────────── */
+
+// Alterna entre exibir todos os registros ou apenas os pendentes (status ≠ OK).
+// O estado é salvo no localStorage para persistir entre visitas.
+const filterToggle = document.getElementById('filter-toggle');
+if (filterToggle) {
+  filterToggle.checked = currentFilter === 'pendentes';
+  filterToggle.addEventListener('change', (e) => {
+    currentFilter = e.target.checked ? 'pendentes' : 'todos';
+    localStorage.setItem('appContas_filter', currentFilter);
+    renderTable(); // não precisa buscar na API — refiltra o array já carregado
   });
 }
 
@@ -329,13 +364,29 @@ function renderTable() {
     return;
   }
 
-  // Calcula os saldos uma única vez e os reutiliza tanto nos cards quanto nas linhas da tabela
+  // Calcula os saldos e totalizadores sobre o array COMPLETO (sem filtro)
+  // para que os cards reflitam sempre o mês inteiro independentemente do filtro.
   const saldos = computeSaldos();
   computeSummary(saldos);
 
+  // Mapa saldo por índice original para referenciar na exibição filtrada
+  const saldoMap = new Map(transactions.map((tx, i) => [tx.id, saldos[i]]));
+
+  // Aplica o filtro de exibição: no modo 'pendentes', registros especiais
+  // (saldo inicial e âncora) são sempre exibidos; registros OK são ocultados.
+  const visible = currentFilter === 'pendentes'
+    ? transactions.filter(tx => tx.is_special || computeStatus(tx) !== 'OK')
+    : transactions;
+
   tbody.innerHTML = '';
-  transactions.forEach((tx, i) => {
-    const saldo      = saldos[i];
+
+  if (!visible.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Nenhum registro pendente para este mês. 🎉</td></tr>`;
+    return;
+  }
+
+  visible.forEach((tx) => {
+    const saldo      = saldoMap.get(tx.id) ?? 0;
     const saldoClass = saldo > 0 ? 'positive' : saldo < 0 ? 'negative' : '';
 
     // Registros especiais (saldo inicial) são exibidos sempre como entrada (positivo)
@@ -594,7 +645,9 @@ txForm.addEventListener('submit', async (e) => {
 
   const id       = document.getElementById('form-id').value;
   // A ordem do novo registro é sempre maior que a maior existente
-  const maxOrdem = transactions.length ? Math.max(...transactions.map((t) => t.ordem)) + 1 : 1;
+  const maxOrdem = transactions.length
+    ? transactions.reduce((max, t) => Math.max(max, t.ordem), 0) + 1
+    : 1;
 
   // Registros especiais só permitem alterar o campo efetivo
   const editingTx     = id ? transactions.find((t) => String(t.id) === id) : null;
@@ -802,7 +855,9 @@ batchForm.addEventListener('submit', async (e) => {
   const discriminacao = document.getElementById('batch-discriminacao').value.trim();
   const tipo          = document.getElementById('batch-tipo').value;
   const previsto      = document.getElementById('batch-previsto').value;
-  const maxOrdem      = transactions.length ? Math.max(...transactions.map((t) => t.ordem)) + 1 : 1;
+  const maxOrdem      = transactions.length
+    ? transactions.reduce((max, t) => Math.max(max, t.ordem), 0) + 1
+    : 1;
   const targetAnoMes  = anoMes(); // mês exibido no dashboard no momento da criação
 
   btnBatchSave.disabled     = true;

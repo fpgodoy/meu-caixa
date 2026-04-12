@@ -20,7 +20,19 @@ DATABASE_URL = os.environ.get(
 )
 
 # Cria o engine principal — reutilizado em toda a aplicação.
-engine = create_engine(DATABASE_URL)
+#
+# Configuração do pool sincronizada com max_connections=10 do PostgreSQL
+# (definido no docker-compose.yml). pool_size + max_overflow <= max_connections
+# para evitar o erro "FATAL: sorry, too many clients".
+# pool_recycle fecha e reabre conexões dormentes após 30 min, prevenindo
+# erros de "connection closed" em sessões longas.
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=5,
+    max_overflow=2,
+    pool_timeout=30,
+    pool_recycle=1800,
+)
 
 # Fábrica de sessões: autocommit e autoflush desligados para controle explícito.
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
