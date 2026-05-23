@@ -982,6 +982,139 @@ def create_recorrente(
     return rec
 
 
+# ──────────────────────────────────────────────────────────────────
+# Helpers internos para edição de recorrentes
+# ──────────────────────────────────────────────────────────────────
+
+def _default_until(rec: models.RecurringRecord, from_ano_mes: str) -> str:
+    """
+    Calcula o horizonte padrão de geração quando generate_until não é informado,
+    espelhando a lógica de generate_transactions.
+    """
+    from_year  = int(from_ano_mes[:4])
+    from_month = int(from_ano_mes[5:7])
+    if rec.periodicidade == "mensal":
+        total       = (from_month - 1) + 23
+        until_year  = from_year + total // 12
+        until_month = total % 12 + 1
+    else:
+        until_year  = from_year + 4
+        until_month = rec.mes_anual or 1
+    return f"{until_year:04d}-{until_month:02d}"
+
+
+def _apply_period_update(
+    db: Session,
+    rec: models.RecurringRecord,
+    apply_from: str,
+    generate_until: str,
+    changed_fields: set,
+):
+    """
+    Atualiza in-place os lançamentos existentes no período [apply_from, generate_until],
+    tocando apenas os campos propagáveis que foram alterados (changed_fields).
+
+    Campos manuais (efetivo, confirmado, data_pagamento, status) são SEMPRE preservados.
+    Meses dentro do período que ainda não têm lançamento são criados normalmente.
+
+    Nota: apply_from e generate_until são expressos em mês de vencimento (cur_month).
+    Quando vincula_proximo_mes=True, o ano_mes armazenado no banco é cur_month+1;
+    o ajuste de intervalo de consulta é feito internamente.
+    """
+    PROPAGABLE = {"discriminacao", "tipo", "valor_previsto", "dia_vencimento"}
+    fields_to_update = changed_fields & PROPAGABLE
+
+    # Calcula o intervalo de ano_mes realmente armazenado no banco.
+    # Para vincula_proximo_mes=True os registros ficam um mês à frente do vencimento.
+    def _shift_forward(ym: str) -> str:
+        y, m = int(ym[:4]), int(ym[5:7])
+        m += 1
+        if m > 12:
+            m = 1
+            y += 1
+        return f"{y:04d}-{m:02d}"
+
+    if rec.vincula_proximo_mes:
+        db_from  = _shift_forward(apply_from)
+        db_until = _shift_forward(generate_until)
+    else:
+        db_from  = apply_from
+        db_until = generate_until
+
+    # Busca todos os lançamentos existentes no período indexados por ano_mes
+    existing = {
+        t.ano_mes: t
+        for t in db.query(models.Transaction).filter(
+            models.Transaction.recorrente_id == rec.id,
+            models.Transaction.ano_mes >= db_from,
+            models.Transaction.ano_mes <= db_until,
+        ).all()
+    }
+
+    cur_year, cur_month = int(apply_from[:4]), int(apply_from[5:7])
+    end_year, end_month = int(generate_until[:4]), int(generate_until[5:7])
+    new_rows = []
+
+    while (cur_year, cur_month) <= (end_year, end_month):
+        # Anuais: pula meses que não sejam o mês-alvo
+        if rec.periodicidade == "anual":
+            mes_alvo = rec.mes_anual or 1
+            if cur_month != mes_alvo:
+                cur_month += 1
+                if cur_month > 12:
+                    cur_month = 1
+                    cur_year += 1
+                continue
+
+        day  = min(rec.dia_vencimento, calendar.monthrange(cur_year, cur_month)[1])
+        venc = date(cur_year, cur_month, day)
+
+        # Determina o ano_mes que fica armazenado (com ou sem vincula)
+        if rec.vincula_proximo_mes:
+            t_month = cur_month + 1
+            t_year  = cur_year + (1 if t_month > 12 else 0)
+            t_month = t_month if t_month <= 12 else 1
+            ano_mes_str = f"{t_year:04d}-{t_month:02d}"
+        else:
+            ano_mes_str = f"{cur_year:04d}-{cur_month:02d}"
+
+        if ano_mes_str in existing:
+            # Atualiza in-place apenas os campos que mudaram no formulário
+            tx = existing[ano_mes_str]
+            if "discriminacao" in fields_to_update:
+                tx.discriminacao = rec.discriminacao
+            if "tipo" in fields_to_update:
+                tx.tipo = rec.tipo
+            if "valor_previsto" in fields_to_update:
+                tx.previsto = rec.valor_previsto
+            if "dia_vencimento" in fields_to_update:
+                tx.vencimento = venc
+                tx.ordem      = rec.dia_vencimento
+        else:
+            # Mês sem lançamento: cria normalmente
+            new_rows.append(models.Transaction(
+                ano_mes        = ano_mes_str,
+                tipo           = rec.tipo,
+                previsto       = rec.valor_previsto,
+                efetivo        = None,
+                confirmado     = False,
+                vencimento     = venc,
+                discriminacao  = rec.discriminacao,
+                data_pagamento = None,
+                status         = "PEN",
+                ordem          = rec.dia_vencimento,
+                recorrente_id  = rec.id,
+            ))
+
+        cur_month += 1
+        if cur_month > 12:
+            cur_month = 1
+            cur_year += 1
+
+    if new_rows:
+        db.add_all(new_rows)
+
+
 @app.put("/api/recorrentes/{rec_id}", response_model=schemas.RecurringOut)
 def update_recorrente(
     rec_id: int,
@@ -992,21 +1125,29 @@ def update_recorrente(
     db: Session = Depends(get_db),
 ):
     """
-    Atualiza um registro recorrente com controle fino sobre os lançamentos existentes.
+    Atualiza um registro recorrente e propaga as mudanças para os lançamentos existentes.
 
-    Comportamento por combinação de parâmetros de query:
+    Comportamento conforme os parâmetros de query fornecidos:
 
-    Caso A — apply_from fornecido:
-      Apaga todos os lançamentos a partir de apply_from e regenera desde lá.
-      Útil quando há mudança de valor, periodicidade ou dia de vencimento.
+    apply_from fornecido (com ou sem generate_until):
+      Atualiza in-place os lançamentos já existentes no intervalo [apply_from, generate_until],
+      tocando apenas os campos que foram enviados no corpo da requisição. Campos preenchidos
+      manualmente pelo usuário (efetivo, confirmado, data_pagamento, status) são sempre
+      preservados. Meses do intervalo que ainda não possuem lançamento são criados.
+      Lançamentos fora do intervalo — anteriores a apply_from ou posteriores a generate_until —
+      não são afetados.
 
-    Caso B — apenas generate_until fornecido:
-      NÃO toca nos lançamentos já existentes.
-      Apenas estende a geração além do último mês já gerado.
-      Útil para adiantar lançamentos de anos futuros.
+      Exceção: se vincula_proximo_mes for alterado, os lançamentos do intervalo são removidos
+      e recriados, pois essa mudança desloca o campo ano_mes de cada lançamento em ±1 mês,
+      tornando a atualização in-place inviável.
 
-    Caso C — nenhum parâmetro de query:
-      Atualiza apenas os metadados do registro recorrente (ex: nome),
+    Apenas generate_until fornecido (sem apply_from):
+      Não toca nos lançamentos já existentes.
+      Estende a geração a partir do mês seguinte ao último já gerado até generate_until.
+      Útil para antecipar lançamentos de períodos futuros.
+
+    Nenhum parâmetro de query fornecido:
+      Atualiza apenas os metadados do template recorrente (ex: descrição, valor),
       sem alterar nenhum lançamento já gerado.
     """
     rec = db.query(models.RecurringRecord).filter(models.RecurringRecord.id == rec_id).first()
@@ -1017,25 +1158,40 @@ def update_recorrente(
     _validar_ano_mes(apply_from, "apply_from")
     _validar_ano_mes(generate_until, "generate_until")
 
+    # Captura quais campos foram realmente alterados antes de aplicar ao ORM
+    changed_fields = set(payload.model_dump(exclude_unset=True).keys())
+
     # Aplica as atualizações de campos do registro recorrente
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(rec, field, value)
 
     if apply_from:
-        # Caso A: apaga lançamentos a partir de apply_from e regenera
-        (
-            db.query(models.Transaction)
-            .filter(
-                models.Transaction.recorrente_id == rec_id,
-                models.Transaction.ano_mes >= apply_from,
+        until = generate_until or _default_until(rec, apply_from)
+
+        if "vincula_proximo_mes" in changed_fields:
+            # Quando vincula_proximo_mes muda, o campo ano_mes de cada lançamento
+            # precisa ser deslocado em ±1 mês — o que torna a atualização in-place
+            # inviável. Remove e recria os lançamentos dentro do período selecionado.
+            (
+                db.query(models.Transaction)
+                .filter(
+                    models.Transaction.recorrente_id == rec_id,
+                    models.Transaction.ano_mes >= apply_from,
+                    models.Transaction.ano_mes <= until,
+                )
+                .delete(synchronize_session=False)
             )
-            .delete(synchronize_session=False)
-        )
-        db.flush()
-        generate_transactions(db, rec, apply_from, generate_until or None)
+            db.flush()
+            generate_transactions(db, rec, apply_from, until)
+        else:
+            # Atualiza in-place apenas os campos alterados, preservando dados manuais
+            # (efetivo, confirmado, data_pagamento, status) nos lançamentos existentes.
+            # Lançamentos fora do intervalo [apply_from, until] não são tocados.
+            _apply_period_update(db, rec, apply_from, until, changed_fields)
 
     elif generate_until:
-        # Caso B: estende a geração a partir do mês seguinte ao último já gerado
+        # Sem apply_from: não toca em lançamentos existentes.
+        # Apenas estende a geração a partir do mês seguinte ao último já gerado.
         last = (
             db.query(sqlfunc.max(models.Transaction.ano_mes))
             .filter(models.Transaction.recorrente_id == rec_id)
