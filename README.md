@@ -10,7 +10,7 @@ Gerenciador de finanças pessoais self-hosted para controle de orçamento mensal
 ## ✨ Funcionalidades
 
 - 📅 **Orçamento mensal** — controle entradas e saídas previstas e efetivadas por mês
-- 🔁 **Registros recorrentes** — gerencie contas fixas mensais e anuais com retroatividade controlada por período
+- 🔁 **Registros recorrentes** — gerencie contas fixas mensais e anuais com controle de período. A edição permite aplicar as alterações apenas ao intervalo selecionado, atualizando in-place os campos modificados e preservando valores inseridos manualmente pelo usuário (como valor efetivo, data de pagamento e confirmação) nos lançamentos existentes.
 - 🔗 **Vínculo ao mês seguinte** — lance contas no mês atual mas vincule ao orçamento do mês seguinte
 - 📊 **Totalizadores inteligentes** — entradas, saídas e "A Pagar" calculados com prioridade efetivo → previsto; o total a pagar filtra automaticamente apenas os registros pendentes
 - 📊 **Ordenação inteligente** — visualize por data ou com receitas primeiro para ver se o mês fecha
